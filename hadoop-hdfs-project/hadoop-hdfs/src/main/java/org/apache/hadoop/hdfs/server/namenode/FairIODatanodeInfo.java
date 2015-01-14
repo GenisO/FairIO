@@ -26,7 +26,11 @@ public class FairIODatanodeInfo implements Comparable<FairIODatanodeInfo>{
 		this.weightByClass = new HashMap<FairIOClassInfo, BigDecimal>();
 		this.totalWeight = BigDecimal.ZERO;
 	}
-	
+
+	public Map<FairIOClassInfo, BigDecimal> getWeightByClass() {
+		return weightByClass;
+	}
+
 	public DatanodeID getDatanodeID() {
 		return this.nodeID;
 	}

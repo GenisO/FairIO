@@ -238,8 +238,7 @@ public class DWRRDataXceiver extends Receiver implements Runnable {
           CachingStrategy.newDefaultStrategy()));
       LOG.info("CAMAMILLA "+classId+" READ FINALIZED");      // TODO TODO log
     } catch (IOException e) {
-      LOG.error("CAMAMILLA "+classId+" error");      // TODO TODO log
-      e.printStackTrace();
+      LOG.error("CAMAMILLA "+classId+" error "+e.getMessage());      // TODO TODO log
     }
     LOG.info("CAMAMILLA DWRRDataXceiver.makeReadBlock end time="+now());      // TODO TODO log
   }
@@ -265,8 +264,7 @@ public class DWRRDataXceiver extends Receiver implements Runnable {
           getCachingStrategy(proto.getCachingStrategy()) :
           CachingStrategy.newDefaultStrategy()));
     } catch (IOException e) {
-      LOG.info("CAMAMILLA "+classId+" error");      // TODO TODO log
-      e.printStackTrace();
+      LOG.info("CAMAMILLA "+classId+" error "+e.getMessage());      // TODO TODO log
     }
     LOG.info("CAMAMILLA DWRRDataXceiver.opWriteBlock queue end time="+now());      // TODO TODO log
     LOG.info("CAMAMILLA "+classId+" ENQUEUE WRITE FINALIZED");        // TODO TODO log

@@ -46,7 +46,7 @@ public class DWRRManager {
                 lock.wait();
               }
             } catch (InterruptedException e) {
-              e.printStackTrace();
+              LOG.error(e.getMessage());
             }
           }
 

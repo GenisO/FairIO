@@ -2,18 +2,16 @@ package org.apache.hadoop.hdfs.server.namenode;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.protocol.DatanodeID;
-import org.apache.hadoop.util.Daemon;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.net.Socket;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class FairIOController {
   public static final Log LOG = LogFactory.getLog(FairIOController.class);
@@ -39,23 +37,24 @@ public class FairIOController {
   private Map<DatanodeID, FairIODatanodeInfo> nodeIDtoInfo;
   private FairIOMarginalsComparator datanodeInfoComparator;
   private HashMap<String, DatanodeID> nodeUuidtoNodeID;
-  private Daemon threadedFairDWRR = new Daemon(new ThreadGroup("FairIOController Thread"),
-    new Runnable() {
-      public final Log LOG = LogFactory.getLog(Daemon.class);
 
-      @Override
-      public void run() {
-        while (true) {
-          try {
-            Thread.sleep(20*1000);
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          }
-
-          computeShares();
-        }
-      }
-    });
+//  private Daemon threadedFairDWRR = new Daemon(new ThreadGroup("FairIOController Thread"),
+//    new Runnable() {
+//      public final Log LOG = LogFactory.getLog(Daemon.class);
+//
+//      @Override
+//      public void run() {
+//        while (true) {
+//          try {
+//            Thread.sleep(20*1000);
+//          } catch (InterruptedException e) {
+//            e.printStackTrace();
+//          }
+//
+//          computeShares();
+//        }
+//      }
+//    });
 
   public FairIOController() {
     this.classToDatanodes = new HashMap<FairIOClassInfo, Set<FairIODatanodeInfo>>();
@@ -155,7 +154,38 @@ public class FairIOController {
       for (FairIOClassInfo classInfo : classToDatanodes.keySet()) {
         computeSharesByClass(classInfo);
       }
+    }
 
+    weightsReady();
+  }
+
+  private void weightsReady() {
+  // TODO TODO per sockets!!
+    for (DatanodeID dID : nodeIDtoInfo.keySet()) {
+      String ip = dID.getIpAddr();
+      FairIODatanodeInfo datanode = nodeIDtoInfo.get(dID);
+      Map<FairIOClassInfo, BigDecimal> weightByClass = datanode.getWeightByClass();
+
+      for (FairIOClassInfo classInfo : weightByClass.keySet()) {
+        String classID = String.valueOf(classInfo.getClassID());
+        //String weight = String.valueOf(classInfo.getWeight().floatValue());
+        String weight = String.valueOf(weightByClass.get(classInfo).floatValue());
+
+        sendWeights(ip, classID, weight);
+      }
+    }
+  }
+
+  private void sendWeights(String ip, String classID, String weight) {
+    LOG.info("CAMAMILLA FairIOController.sendWeights ip="+ip+" classid="+classID+" weight="+weight);
+    try {
+      String sentence = classID+":"+weight;
+      Socket nameNodeSocket = new Socket(ip, DFSConfigKeys.DFS_DATANODE_FAIRIODISK_PORT);
+      DataOutputStream outToDN = new DataOutputStream(nameNodeSocket.getOutputStream());
+      outToDN.writeBytes(sentence + '\n');
+      nameNodeSocket.close();
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
     }
   }
 

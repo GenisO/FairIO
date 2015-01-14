@@ -21,7 +21,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.protobuf.BlockingService;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -34,7 +33,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.DFSUtil;
-import org.apache.hadoop.hdfs.DFSUtil.ConfiguredNNAddress;
 import org.apache.hadoop.hdfs.HDFSPolicyProvider;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.net.DomainPeerServer;
@@ -90,10 +88,12 @@ import org.apache.hadoop.util.DiskChecker.DiskErrorException;
 import org.mortbay.util.ajax.JSON;
 
 import javax.management.ObjectName;
-
 import java.io.*;
 import java.lang.management.ManagementFactory;
-import java.net.*;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URI;
+import java.net.UnknownHostException;
 import java.nio.channels.SocketChannel;
 import java.security.PrivilegedExceptionAction;
 import java.util.*;
@@ -564,7 +564,8 @@ public class DataNode extends Configured
     }
     tcpPeerServer.setReceiveBufferSize(HdfsConstants.DEFAULT_DATA_SOCKET_SIZE);
     streamingAddr = tcpPeerServer.getStreamingAddr();
-		LOG.info("CAMAMILLA sheduler DWRR?  "+conf.getBoolean(DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_MODE_KEY, DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_DEFAULT));          // TODO TODO log
+    LOG.info("CAMAMILLA sheduler DWRR?  "+conf.getBoolean(DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_MODE_KEY, DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_DEFAULT));          // TODO TODO log
+    LOG.info("CAMAMILLA DataNode.initDataXceiver streamingAddres: "+streamingAddr.getAddress().getHostAddress()+" peeraddress: "+tcpPeerServer.getListeningString());          // TODO TODO log
     this.threadGroup = new ThreadGroup("dataXceiverServer");
     this.dataXceiverServer = new Daemon(threadGroup, 
         new DataXceiverServer(tcpPeerServer, conf, this));
@@ -789,7 +790,7 @@ public class DataNode extends Configured
     metrics.getJvmMetrics().setPauseMonitor(pauseMonitor);
     
     blockPoolManager = new BlockPoolManager(this);
-    blockPoolManager.refreshNamenodes(conf);
+    blockPoolManager.refreshNamenodes(conf);    // TODO TODO
 
     // Create the ReadaheadPool from the DataNode context so we can
     // exit without having to explicitly shutdown its thread pool.
@@ -828,7 +829,7 @@ public class DataNode extends Configured
           nsInfo.getNamespaceID(), nsInfo.clusterID, nsInfo.getCTime(),
           NodeType.DATA_NODE);
     }
-
+// TODO TODO
     DatanodeID dnId = new DatanodeID(
         streamingAddr.getAddress().getHostAddress(), hostName, 
         storage.getDatanodeUuid(), getXferPort(), getInfoPort(),

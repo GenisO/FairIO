@@ -156,7 +156,6 @@ public class DataXceiverServer implements Runnable {
       }
     } catch (IOException e) {
       LOG.error("CAMAMILLA DataXceiverServer error dfs "+e.getMessage());      // TODO TODO log
-      e.printStackTrace();
     }
   }
 

@@ -17,15 +17,11 @@
  */
 package org.apache.hadoop.hdfs.server.datanode;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
@@ -33,11 +29,10 @@ import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.DFSUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.security.PrivilegedExceptionAction;
+import java.util.*;
 
 /**
  * Manages the BPOfferService objects for the data node.
@@ -59,7 +54,7 @@ class BlockPoolManager {
 
   //This lock is used only to ensure exclusion of refreshNamenodes
   private final Object refreshNamenodesLock = new Object();
-  
+
   BlockPoolManager(DataNode dn) {
     this.dn = dn;
   }
@@ -140,7 +135,7 @@ class BlockPoolManager {
       throw ioe;
     }
   }
-  
+
   void joinAll() {
     for (BPOfferService bpos: this.getAllNamenodeThreads()) {
       bpos.join();

@@ -633,6 +633,7 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
 	// TODO TODO conf de fitxer
 	public static final String DFS_DATANODE_XCEIVER_DWRR_CGROUPS_MODE_KEY = "dfs.datanode.xceiver.dwrr.cgroups";
 	public static final boolean DFS_DATANODE_XCEIVER_DWRR_CGROUPS_DEFAULT = false;
+  public static final int DFS_DATANODE_FAIRIODISK_PORT = 50030;
 
   public static final String DFS_DATANODE_XCEIVER_DWRR_MODE_KEY = "dfs.datanode.xceiver.dwrr";
   public static final boolean DFS_DATANODE_XCEIVER_DWRR_DEFAULT = false;

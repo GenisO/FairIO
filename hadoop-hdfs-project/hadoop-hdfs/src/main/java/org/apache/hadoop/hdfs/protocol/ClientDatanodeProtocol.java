@@ -17,11 +17,6 @@
  */
 package org.apache.hadoop.hdfs.protocol;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
@@ -30,6 +25,9 @@ import org.apache.hadoop.hdfs.security.token.block.BlockTokenSelector;
 import org.apache.hadoop.security.KerberosInfo;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenInfo;
+
+import java.io.IOException;
+import java.util.List;
 
 /** An client-datanode protocol for block recovery
  */
@@ -54,7 +52,7 @@ public interface ClientDatanodeProtocol {
    * For more details on protocol buffer wire protocol, please see 
    * .../org/apache/hadoop/hdfs/protocolPB/overview.html
    * 
-   * The log of historical changes can be retrieved from the svn).
+   * The log of historical changes can be retrieved from the svn.
    * 9: Added deleteBlockPool method
    * 
    * 9 is the last version id when this class was used for protocols

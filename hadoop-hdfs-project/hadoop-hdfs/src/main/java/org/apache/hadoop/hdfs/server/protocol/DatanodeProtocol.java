@@ -18,17 +18,16 @@
 
 package org.apache.hadoop.hdfs.server.protocol;
 
-import java.io.*;
-import java.util.List;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.apache.hadoop.hdfs.protocol.BlockListAsLongs;
 import org.apache.hadoop.hdfs.protocol.DatanodeID;
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
 import org.apache.hadoop.hdfs.protocol.LocatedBlock;
 import org.apache.hadoop.io.retry.Idempotent;
 import org.apache.hadoop.security.KerberosInfo;
+
+import java.io.IOException;
+import java.util.List;
 
 /**********************************************************************
  * Protocol that a DFS datanode uses to communicate with the NameNode.
@@ -89,7 +88,7 @@ public interface DatanodeProtocol {
   @Idempotent
   public DatanodeRegistration registerDatanode(DatanodeRegistration registration
       ) throws IOException;
-  
+  // TODO TODO TODO register DataNode
   /**
    * sendHeartbeat() tells the NameNode that the DataNode is still
    * alive and well.  Includes some status info, too. 
@@ -141,7 +140,7 @@ public interface DatanodeProtocol {
    * {@link #blockReport(DatanodeRegistration, String, StorageBlockReport[])},
    * which is used to communicated blocks stored on disk.
    *
-   * @param            The datanode registration.
+   * @param registration  The datanode registration.
    * @param poolId     The block pool ID for the blocks.
    * @param blockIds   A list of block IDs.
    * @return           The DatanodeCommand.

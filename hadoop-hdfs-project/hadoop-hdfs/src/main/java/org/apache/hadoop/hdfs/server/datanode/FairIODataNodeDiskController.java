@@ -3,13 +3,15 @@ package org.apache.hadoop.hdfs.server.datanode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.apache.hadoop.hdfs.net.TcpPeerServer;
+import org.apache.hadoop.hdfs.server.namenode.FairIOController;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+// TODO TODO afegir comentaris a tot arreu!!!
+// TODO TODO a mes de la descripcio de les classes propies
 
 /**
  * Created by DEIM on 12/01/15.
@@ -18,9 +20,7 @@ public class FairIODataNodeDiskController implements Runnable {
   public static final Log LOG = LogFactory.getLog(FairIODataNodeDiskController.class);
   private ControlGroup cGroup;
 
-  private TcpPeerServer tcpPeerServer;
-  ServerSocket serverSocket;
-
+  private ServerSocket serverSocket;
 
   public FairIODataNodeDiskController() {
     this.cGroup = new ControlGroup.BlkIOControlGroup();
@@ -30,7 +30,6 @@ public class FairIODataNodeDiskController implements Runnable {
     } catch (IOException e) {
       LOG.error(e.getMessage());
     }
-
   }
 
   private void setCgroupWeights(long classId, long weight) {
@@ -52,18 +51,20 @@ public class FairIODataNodeDiskController implements Runnable {
         Socket connectionSocket = serverSocket.accept();
         BufferedReader inFromNN =
           new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-        String line = inFromNN.readLine();
-        LOG.info("CAMAMILLA FairIODataNodeDiskController received message="+line);     // TODO TODO
-        if (line.equals("EXIT")) {
+        String fullLine = inFromNN.readLine();
+        LOG.info("CAMAMILLA FairIODataNodeDiskController received message="+fullLine);     // TODO TODO
+        if (fullLine.equals(FairIOController.EXIT_SIGNAL)) {
           shouldRun = false;
         } else {
-          String stClassId = line.substring(0, line.indexOf(":"));
-          String stWeight = line.substring(line.indexOf(":") + 1);
+          for (String line : fullLine.split(";")){
+            String stClassId = line.substring(0, line.indexOf(":"));
+            String stWeight = line.substring(line.indexOf(":") + 1);
 
-          long classId = Long.parseLong(stClassId);
-          long weight = Long.parseLong(stWeight);
+            long classId = Long.parseLong(stClassId);
+            long weight = Long.parseLong(stWeight);
 
-          setCgroupWeights(classId, weight);
+            setCgroupWeights(classId, weight);
+          }
         }
         inFromNN.close();
       } catch (IOException e) {

@@ -17,6 +17,7 @@ public class FairIOController {
   public static final Log LOG = LogFactory.getLog(FairIOController.class);
 
   public static final int PRECISSION = 64;
+  public static final String EXIT_SIGNAL = "EXIT";
   public static MathContext CONTEXT = new MathContext(PRECISSION);
   public static final BigDecimal MIN_TOTAL_WEIGHT = new BigDecimal(0.00000000000000000000000000000000000000000000001, CONTEXT);
   public static DecimalFormat decimalFormat = new DecimalFormat("0.0000");
@@ -37,24 +38,6 @@ public class FairIOController {
   private Map<DatanodeID, FairIODatanodeInfo> nodeIDtoInfo;
   private FairIOMarginalsComparator datanodeInfoComparator;
   private HashMap<String, DatanodeID> nodeUuidtoNodeID;
-
-//  private Daemon threadedFairDWRR = new Daemon(new ThreadGroup("FairIOController Thread"),
-//    new Runnable() {
-//      public final Log LOG = LogFactory.getLog(Daemon.class);
-//
-//      @Override
-//      public void run() {
-//        while (true) {
-//          try {
-//            Thread.sleep(20*1000);
-//          } catch (InterruptedException e) {
-//            e.printStackTrace();
-//          }
-//
-//          computeShares();
-//        }
-//      }
-//    });
 
   public FairIOController() {
     this.classToDatanodes = new HashMap<FairIOClassInfo, Set<FairIODatanodeInfo>>();
@@ -166,13 +149,15 @@ public class FairIOController {
       FairIODatanodeInfo datanode = nodeIDtoInfo.get(dID);
       Map<FairIOClassInfo, BigDecimal> weightByClass = datanode.getWeightByClass();
 
+      String message = "";
       for (FairIOClassInfo classInfo : weightByClass.keySet()) {
         String classID = String.valueOf(classInfo.getClassID());
         //String weight = String.valueOf(classInfo.getWeight().floatValue());
         String weight = String.valueOf(weightByClass.get(classInfo).floatValue());
 
-        sendMessage(ip, classID + ":" + weight);
+        message+=classID + ":" + weight+";";
       }
+      if (!message.equals("")) sendMessage(ip, message);
     }
   }
 
@@ -353,7 +338,7 @@ public class FairIOController {
   public void shutdown() {
     for (DatanodeID dID : nodeIDtoInfo.keySet()) {
       String ip = dID.getIpAddr();
-      sendMessage(ip, "EXIT");
+      sendMessage(ip, FairIOController.EXIT_SIGNAL);
     }
   }
 }

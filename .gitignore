@@ -64,7 +64,7 @@ hs_err_pid*
 
 # hadoop ignore
 target/
-
+deployment/
 # generic files to ignore
 *~
 *.lock

@@ -171,15 +171,14 @@ public class FairIOController {
         //String weight = String.valueOf(classInfo.getWeight().floatValue());
         String weight = String.valueOf(weightByClass.get(classInfo).floatValue());
 
-        sendWeights(ip, classID, weight);
+        sendMessage(ip, classID + ":" + weight);
       }
     }
   }
 
-  private void sendWeights(String ip, String classID, String weight) {
-    LOG.info("CAMAMILLA FairIOController.sendWeights ip="+ip+" classid="+classID+" weight="+weight);
+  private void sendMessage(String ip, String sentence) {
+    LOG.info("CAMAMILLA FairIOController.sendWeights ip="+ip+" "+sentence);
     try {
-      String sentence = classID+":"+weight;
       Socket nameNodeSocket = new Socket(ip, DFSConfigKeys.DFS_DATANODE_FAIRIODISK_PORT);
       DataOutputStream outToDN = new DataOutputStream(nameNodeSocket.getOutputStream());
       outToDN.writeBytes(sentence + '\n');
@@ -351,4 +350,10 @@ public class FairIOController {
     return x1;
   }
 
+  public void shutdown() {
+    for (DatanodeID dID : nodeIDtoInfo.keySet()) {
+      String ip = dID.getIpAddr();
+      sendMessage(ip, "EXIT");
+    }
+  }
 }

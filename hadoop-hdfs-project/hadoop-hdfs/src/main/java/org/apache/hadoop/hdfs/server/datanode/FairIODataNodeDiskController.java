@@ -52,19 +52,24 @@ public class FairIODataNodeDiskController implements Runnable {
         Socket connectionSocket = serverSocket.accept();
         BufferedReader inFromNN =
           new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-        String lineWithWeights = inFromNN.readLine();
-        LOG.info("CAMAMILLA FairIODataNodeDiskController received message="+lineWithWeights);     // TODO TODO
-        String stClassId = lineWithWeights.substring(0, lineWithWeights.indexOf(":"));
-        String stWeight = lineWithWeights.substring(lineWithWeights.indexOf(":") + 1);
+        String line = inFromNN.readLine();
+        LOG.info("CAMAMILLA FairIODataNodeDiskController received message="+line);     // TODO TODO
+        if (line.equals("EXIT")) {
+          shouldRun = false;
+        } else {
+          String stClassId = line.substring(0, line.indexOf(":"));
+          String stWeight = line.substring(line.indexOf(":") + 1);
 
-        long classId = Long.parseLong(stClassId);
-        long weight = Long.parseLong(stWeight);
+          long classId = Long.parseLong(stClassId);
+          long weight = Long.parseLong(stWeight);
 
-        setCgroupWeights(classId, weight);
+          setCgroupWeights(classId, weight);
+        }
         inFromNN.close();
       } catch (IOException e) {
         LOG.error(e.getMessage());
       }
     }
+    LOG.info("CAMAMILLA FairIODataNodeDiskController exit");     // TODO TODO
   }
 }

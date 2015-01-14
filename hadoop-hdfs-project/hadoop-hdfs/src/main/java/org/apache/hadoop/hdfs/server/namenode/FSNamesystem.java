@@ -5908,6 +5908,9 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
     if (blockManager != null) {
       blockManager.shutdown();
     }
+    if (fairIOController != null) {
+      fairIOController.shutdown();
+    }
   }
   
 

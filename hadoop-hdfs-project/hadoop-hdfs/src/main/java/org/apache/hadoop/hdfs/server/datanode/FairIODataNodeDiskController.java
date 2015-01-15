@@ -10,11 +10,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 // TODO TODO afegir comentaris a tot arreu!!!
 // TODO TODO a mes de la descripcio de les classes propies
 
 /**
- * Created by DEIM on 12/01/15.
+ * Disk management using cgroups. Receive messages from NameNode via TCP socket
+ * Assignment of weights by cgroups directories.
  */
 public class FairIODataNodeDiskController implements Runnable {
   public static final Log LOG = LogFactory.getLog(FairIODataNodeDiskController.class);
@@ -23,10 +25,10 @@ public class FairIODataNodeDiskController implements Runnable {
   private ServerSocket serverSocket;
 
   public FairIODataNodeDiskController() {
-    this.cGroup = new ControlGroup.BlkIOControlGroup();
+    cGroup = new ControlGroup.BlkIOControlGroup();
 
     try {
-      serverSocket = new ServerSocket(DFSConfigKeys.DFS_DATANODE_FAIRIODISK_PORT);
+      serverSocket = new ServerSocket(DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT);
     } catch (IOException e) {
       LOG.error(e.getMessage());
     }
@@ -34,11 +36,14 @@ public class FairIODataNodeDiskController implements Runnable {
 
   private void setCgroupWeights(long classId, long weight) {
     LOG.info("CAMAMILLA FairIODataNodeDiskController.setCgroupWeights "+classId+"=>"+weight);     // TODO TODO
-    // Move process to corresponding CGroup
+    // Set new value to specific directory
     String path = cGroup.createSubDirectory(String.valueOf(classId));
     ControlGroup group = new ControlGroup.BlkIOControlGroup(path);
+
+    // Move process to corresponding CGroup
     long tid = (long) ControlGroup.LinuxHelper.gettid();
     group.addTaskToGroup(String.valueOf(tid));
+
     group.setLongParameter(ControlGroup.BlkIOControlGroup.IO_WEIGHT, weight);
   }
 
@@ -48,9 +53,12 @@ public class FairIODataNodeDiskController implements Runnable {
 
     while (shouldRun) {
       try {
+        // Wait until new request
         Socket connectionSocket = serverSocket.accept();
         BufferedReader inFromNN =
           new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+
+        // fullLine format or "classId:weight;classId:weight;classId:weight;" or FairIOController.EXIT_SIGNAL
         String fullLine = inFromNN.readLine();
         LOG.info("CAMAMILLA FairIODataNodeDiskController received message="+fullLine);     // TODO TODO
         if (fullLine.equals(FairIOController.EXIT_SIGNAL)) {

@@ -75,8 +75,6 @@ class DataXceiver extends Receiver implements Runnable {
   private long opStartTime; //the start time of receiving an Op
   private final InputStream socketIn;
   private OutputStream socketOut;
-  private ControlGroup cgroup;
-  private boolean isCgroupManaged;
 
   /**
    * Client Name used in previous operation. Not available on first request
@@ -101,9 +99,6 @@ class DataXceiver extends Receiver implements Runnable {
     this.connectToDnViaHostname = datanode.getDnConf().connectToDnViaHostname;
     remoteAddress = peer.getRemoteAddressString();
     localAddress = peer.getLocalAddressString();
-
-    this.isCgroupManaged = this.dataXceiverServer.isCgroupManaged();
-    this.cgroup = new ControlGroup.BlkIOControlGroup();
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Number of active connections is: "
@@ -446,20 +441,6 @@ class DataXceiver extends Receiver implements Runnable {
       final boolean sendChecksum,
       final CachingStrategy cachingStrategy) throws IOException {
 
-    long weight = 999;
-    // TODO TODO cgroups
-    // If IO is managed by cgroups, move the current thread to the corresponding class group
-    if (this.isCgroupManaged) {
-      // Move process to corresponding cgroup
-      String path = cgroup.createSubDirectory(String.valueOf(block.getClassId()));
-      ControlGroup group = new ControlGroup.BlkIOControlGroup(path);
-      //long tid = Thread.currentThread().getId();
-      long tid = (long)ControlGroup.LinuxHelper.gettid();
-      group.addTaskToGroup(String.valueOf(tid));
-      weight = (long)this.dataXceiverServer.getClassWeight(block.getClassId());
-      group.setLongParameter(ControlGroup.BlkIOControlGroup.IO_WEIGHT, weight);
-    }
-
     previousOpClientName = clientName;
 
     OutputStream baseStream = getOutputStream();
@@ -517,10 +498,13 @@ class DataXceiver extends Receiver implements Runnable {
       } else {
         IOUtils.closeStream(out);
       }
+
+      // Get weight for metrics in FairIOModel
+      float weight = dataXceiverServer.getClassWeight(block.getClassId());
       datanode.metrics.incrBytesRead((int) read);
       datanode.metrics.incrBlocksRead();
-      LOG.info("CAMAMILLA DataXceiver.readBlock datanode.metrics.incrProcessedRequest classid="+block.getClassId()+" bytes="+read+" weight="+weight);     // TODO TODO log
       datanode.metrics.incrProcessedRequest("" + block.getClassId(), read, weight);    // TODO TODO metrics
+      LOG.info("CAMAMILLA DataXceiver.readBlock datanode.metrics.incrProcessedRequest classid="+block.getClassId()+" bytes="+read+" weight="+weight);     // TODO TODO log
     } catch ( SocketException ignored ) {
       if (LOG.isTraceEnabled()) {
         LOG.trace(dnR + ":Ignoring exception while serving " + block + " to " +

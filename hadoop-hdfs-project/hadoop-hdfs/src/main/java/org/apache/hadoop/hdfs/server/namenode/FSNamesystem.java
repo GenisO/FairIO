@@ -147,7 +147,9 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
         return new StringBuilder();
       }
   };
+
   private final FairIOController fairIOController;
+  private final boolean fairIOModel;
 
   @VisibleForTesting
   public boolean isAuditEnabled() {
@@ -588,7 +590,11 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
     fsLock = new FSNamesystemLock(fair);
     cond = fsLock.writeLock().newCondition();
     this.fsImage = fsImage;
-    fairIOController = new FairIOController();
+    this.fairIOModel = conf.getBoolean(DFSConfigKeys.DFS_FAIR_IO_KEY, DFSConfigKeys.DFS_FAIR_IO_DEFAULT);
+
+    if (fairIOModel) {
+      fairIOController = new FairIOController();
+    } else fairIOController = null;
 
     try {
       resourceRecheckInterval = conf.getLong(
@@ -3073,14 +3079,15 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
     assert hasWriteLock();
     BlockInfo b = dir.addBlock(src, inodes, newBlock, targets);
 
-    for (DatanodeInfo dn : DatanodeStorageInfo.toDatanodeInfos(targets)) {
-      try {
-        fairIOController.addDatanodeToClass(newBlock.getClassId(), dn.getDatanodeUuid());
-      } catch (Exception e) {
-        LOG.error("CAMAMILLA FSNamesystem.saveAllocatedBlock exception "+e.getMessage());   // TODO TODO log
+    if (fairIOModel) {
+      for (DatanodeInfo dn : DatanodeStorageInfo.toDatanodeInfos(targets)) {
+        try {
+          fairIOController.addDatanodeToClass(newBlock.getClassId(), dn.getDatanodeUuid());
+        } catch (Exception e) {
+          LOG.error("CAMAMILLA FSNamesystem.saveAllocatedBlock exception " + e.getMessage());   // TODO TODO log
+        }
       }
     }
-
     NameNode.stateChangeLog.info("BLOCK* allocateBlock: " + src + ". "
         + getBlockPoolId() + " " + b);
     DatanodeStorageInfo.incrementBlocksScheduled(targets);
@@ -4371,7 +4378,9 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
       // TODO TODO registre DataNode
       getBlockManager().getDatanodeManager().registerDatanode(nodeReg);
       checkSafeMode();
-      fairIOController.registerDatanode(nodeReg);
+      if (fairIOModel) {
+        fairIOController.registerDatanode(nodeReg);
+      }
     } finally {
       writeUnlock();
     }
@@ -8100,7 +8109,10 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
       dir.setXAttrs(src, xAttrs, flag);
       getEditLog().logSetXAttrs(src, xAttrs, logRetryCache);
       resultingStat = getAuditFileInfo(src, false);
-      if (xAttr.getName().equals(FairIOController.nameWeight)) {       // TODO TODO nomes funciona/es operatiu per a directoris
+
+      // Intercept xAttr to check if is FairIOKey
+      if (fairIOModel && xAttr.getName().equals(FairIOController.nameWeight)) {
+        // Update FairIOController with new value
         INode fileINode = dir.getNode(FSDirectory.normalizePath(src), true);
         byte[] value = xAttr.getValue();
         fairIOController.setClassWeight(fileINode.getId(), ByteUtils.bytesToFloat(value));
@@ -8133,17 +8145,18 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
   }
 
   List<XAttr> getXAttrs(long classId, String datanodeId) {
-    float weight = fairIOController.getClassWeight(classId, datanodeId);
-    byte[] value = ByteUtils.floatToByte(weight);
-
     List<XAttr> listXAttrs = new LinkedList<XAttr>();
-    XAttr.Builder builder = new XAttr.Builder();
-    builder.setNameSpace(XAttr.NameSpace.USER);
-    builder.setName(FairIOController.nameWeight);
-    builder.setValue(value);
+    if (fairIOModel) {
+      float weight = fairIOController.getClassWeight(classId, datanodeId);
+      byte[] value = ByteUtils.floatToByte(weight);
 
-    listXAttrs.add(builder.build());
+      XAttr.Builder builder = new XAttr.Builder();
+      builder.setNameSpace(XAttr.NameSpace.USER);
+      builder.setName(FairIOController.nameWeight);
+      builder.setValue(value);
 
+      listXAttrs.add(builder.build());
+    }
     return listXAttrs;
   }
 

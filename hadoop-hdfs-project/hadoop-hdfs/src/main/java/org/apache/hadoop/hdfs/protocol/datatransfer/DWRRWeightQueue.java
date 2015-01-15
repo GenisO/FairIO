@@ -2,9 +2,6 @@ package org.apache.hadoop.hdfs.protocol.datatransfer;
 
 import java.util.*;
 
-/**
- * Created by DEIM on 26/09/14.
- */
 public class DWRRWeightQueue<E extends DWRRRequestObject> implements Queue<E> {
 
   private long insertionTime;

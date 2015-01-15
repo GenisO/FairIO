@@ -167,6 +167,8 @@ public class DataNode extends Configured
 
   static final int CURRENT_BLOCK_FORMAT_VERSION = 1;
 
+  private Daemon fairIODiskController;
+
   /**
    * Use {@link NetUtils#createSocketAddr(String)} instead.
    */
@@ -564,7 +566,6 @@ public class DataNode extends Configured
     }
     tcpPeerServer.setReceiveBufferSize(HdfsConstants.DEFAULT_DATA_SOCKET_SIZE);
     streamingAddr = tcpPeerServer.getStreamingAddr();
-    LOG.info("CAMAMILLA sheduler DWRR?  "+conf.getBoolean(DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_MODE_KEY, DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_DEFAULT));          // TODO TODO log
     LOG.info("CAMAMILLA DataNode.initDataXceiver streamingAddres: "+streamingAddr.getAddress().getHostAddress()+" peeraddress: "+tcpPeerServer.getListeningString());          // TODO TODO log
     this.threadGroup = new ThreadGroup("dataXceiverServer");
     this.dataXceiverServer = new Daemon(threadGroup, 
@@ -790,7 +791,11 @@ public class DataNode extends Configured
     metrics.getJvmMetrics().setPauseMonitor(pauseMonitor);
     
     blockPoolManager = new BlockPoolManager(this);
-    blockPoolManager.refreshNamenodes(conf);    // TODO TODO
+    blockPoolManager.refreshNamenodes(conf);
+
+    // Init and start FairIODataNodeDiskController
+    fairIODiskController = new Daemon(new ThreadGroup("FairIODiskController Thread"), new FairIODataNodeDiskController());
+    fairIODiskController.start();
 
     // Create the ReadaheadPool from the DataNode context so we can
     // exit without having to explicitly shutdown its thread pool.
@@ -829,7 +834,7 @@ public class DataNode extends Configured
           nsInfo.getNamespaceID(), nsInfo.clusterID, nsInfo.getCTime(),
           NodeType.DATA_NODE);
     }
-// TODO TODO
+
     DatanodeID dnId = new DatanodeID(
         streamingAddr.getAddress().getHostAddress(), hostName, 
         storage.getDatanodeUuid(), getXferPort(), getInfoPort(),
@@ -1248,7 +1253,7 @@ public class DataNode extends Configured
         }
       }
     }
-    
+
     // We need to make a copy of the original blockPoolManager#offerServices to
     // make sure blockPoolManager#shutDownAll() can still access all the 
     // BPOfferServices, since after setting DataNode#shouldRun to false the 

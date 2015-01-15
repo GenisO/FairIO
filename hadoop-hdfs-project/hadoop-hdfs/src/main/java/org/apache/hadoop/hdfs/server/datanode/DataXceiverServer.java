@@ -20,7 +20,7 @@ package org.apache.hadoop.hdfs.server.datanode;
 import org.apache.commons.logging.Log;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.apache.hadoop.hdfs.DWRRDFSClient;
+import org.apache.hadoop.hdfs.FairIODFSClient;
 import org.apache.hadoop.hdfs.net.Peer;
 import org.apache.hadoop.hdfs.net.PeerServer;
 import org.apache.hadoop.hdfs.protocol.datatransfer.DWRRManager;
@@ -36,7 +36,6 @@ import java.net.SocketTimeoutException;
 import java.nio.channels.AsynchronousCloseException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -51,14 +50,16 @@ public class DataXceiverServer implements Runnable {
   private final PeerServer peerServer;
   private final DataNode datanode;
   private final HashMap<Peer, Thread> peers = new HashMap<Peer, Thread>();
-  private final boolean concurrentDWRR;
-  private DWRRManager dwrrmanager;
-  private final boolean shedulerDWRR;
-  private DWRRDFSClient dfs;
+  private final boolean fairIOModel;
+  private FairIODFSClient xattrManagement;
   private boolean closed = false;
-  private Map<Long, Float> allRequestMap;
-  private boolean isCgroupManaged;
-  
+
+  //private final boolean concurrentDWRR;
+  //private DWRRManager dwrrmanager;
+  //private final boolean shedulerDWRR;
+  //private FairIODFSClient dfs;
+  //private Map<Long, Float> allRequestMap;
+
   /**
    * Maximal number of concurrent xceivers per node.
    * Enforcing the limit is required in order to avoid data-node
@@ -139,23 +140,32 @@ public class DataXceiverServer implements Runnable {
             DFSConfigKeys.DFS_DATANODE_BALANCE_BANDWIDTHPERSEC_DEFAULT),
         conf.getInt(DFSConfigKeys.DFS_DATANODE_BALANCE_MAX_NUM_CONCURRENT_MOVES_KEY,
             DFSConfigKeys.DFS_DATANODE_BALANCE_MAX_NUM_CONCURRENT_MOVES_DEFAULT));
-		this.shedulerDWRR = conf.getBoolean(DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_MODE_KEY, DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_DEFAULT);
-    this.concurrentDWRR = conf.getBoolean(DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_MODE_CONCURRENT_KEY, DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_DEFAULT);
+		//this.shedulerDWRR = conf.getBoolean(DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_MODE_KEY, DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_DEFAULT);
+    //this.concurrentDWRR = conf.getBoolean(DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_MODE_CONCURRENT_KEY, DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_DEFAULT);
 
-    LOG.info("CAMAMILLA DWRR?="+shedulerDWRR+" new concurrent version?="+concurrentDWRR);
+    //LOG.info("CAMAMILLA DWRR?="+shedulerDWRR+" new concurrent version?="+concurrentDWRR);
     //cache of the class weights
-    this.allRequestMap = new ConcurrentHashMap<Long, Float>();
-    this.isCgroupManaged = conf.getBoolean(DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_CGROUPS_MODE_KEY, DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_CGROUPS_DEFAULT);
 
-    try {
-      this.dfs = new DWRRDFSClient(NameNode.getAddress(conf), conf);
-      if (concurrentDWRR) {
-        this.dwrrmanager = new DWRRManager(conf, dfs, datanode);
-      } else {
-        this.dwrrmanager = new DWRRManager(conf, dfs, datanode);
+//    try {
+//      this.dfs = new FairIODFSClient(NameNode.getAddress(conf), conf);
+//      if (concurrentDWRR) {
+//        this.dwrrmanager = new DWRRManager(conf, dfs, datanode);
+//      } else {
+//        this.dwrrmanager = new DWRRManager(conf, dfs, datanode);
+//      }
+//    } catch (IOException e) {
+//      LOG.error("CAMAMILLA DataXceiverServer error dfs "+e.getMessage());      // TODO TODO log
+//    }
+
+    this.fairIOModel = conf.getBoolean(DFSConfigKeys.DFS_FAIR_IO_KEY, DFSConfigKeys.DFS_FAIR_IO_DEFAULT);
+
+    if (fairIOModel) {
+      try {
+        // Manager to retrieve xAttrs of NameNode
+        this.xattrManagement = new FairIODFSClient(NameNode.getAddress(conf), conf);
+      } catch (IOException e) {
+        LOG.error("CAMAMILLA DataXceiverServer error dfs " + e.getMessage());      // TODO TODO log
       }
-    } catch (IOException e) {
-      LOG.error("CAMAMILLA DataXceiverServer error dfs "+e.getMessage());      // TODO TODO log
     }
   }
 
@@ -174,15 +184,18 @@ public class DataXceiverServer implements Runnable {
               + maxXceiverCount);
         }
 
-        if (shedulerDWRR) {     // TODO TODO llançadora de DWRR
-					new Daemon(datanode.threadGroup,
-						DWRRDataXceiver.create(peer, datanode, this, dwrrmanager))
-						.start();
-				} else {
-					new Daemon(datanode.threadGroup,
+//        if (shedulerDWRR) {     // TODO TODO llançadora de DWRR
+//					new Daemon(datanode.threadGroup,
+//						DWRRDataXceiver.create(peer, datanode, this, dwrrmanager))
+//						.start();
+//				} else {
+//					new Daemon(datanode.threadGroup,
+//						DataXceiver.create(peer, datanode, this))
+//						.start();
+//				}
+        new Daemon(datanode.threadGroup,
 						DataXceiver.create(peer, datanode, this))
 						.start();
-				}
       } catch (SocketTimeoutException ignored) {
         // wake up to see if should continue to run
       } catch (AsynchronousCloseException ace) {
@@ -285,40 +298,27 @@ public class DataXceiverServer implements Runnable {
     peers.clear();
   }
 
-  synchronized boolean isCgroupManaged() {
-    return this.isCgroupManaged;
-  }
-
+  // Possible coll de botella. S'usa per a les metriques
   synchronized float getClassWeight(long classId) {
-    if (!this.allRequestMap.containsKey(classId)) {
-      float weight;
-      Map<String, byte[]> xattr = null;
+    float weight = 0;
+    if (fairIOModel) {
       try {
-        xattr = dfs.getXAttrs(classId, datanode.getDatanodeId().getDatanodeUuid());
+        Map<String, byte[]> xattr = null;
+        xattr = xattrManagement.getXAttrs(classId, datanode.getDatanodeId().getDatanodeUuid());
 
         if (xattr == null) {
-          LOG.error("CAMAMILLA DataXceiverServer.opReadBlock.list no te atribut weight");      // TODO TODO log
+          LOG.error("CAMAMILLA DataXceiverServer.getClassWeight no te atribut weight");      // TODO TODO log
           weight = FairIOController.DEFAULT_WEIGHT;
         } else {
-          LOG.info("CAMAMILLA DataXceiverServer.opReadBlock.list fer el get de user." + DWRRManager.nameWeight);      // TODO TODO log
           weight = ByteUtils.bytesToFloat(xattr.get("user." + DWRRManager.nameWeight));
         }
       } catch (IOException e) {
-        LOG.error("CAMAMILLA DataXceiverServer.opReadBlock.list ERROR al getXattr " + e.getMessage());      // TODO TODO log
+        LOG.error("CAMAMILLA DataXceiverServer.getClassWeight al getXattr " + e.getMessage());      // TODO TODO log
         weight = FairIOController.DEFAULT_WEIGHT;
       }
-      allRequestMap.put(classId, weight);
     }
-    float _weight = this.allRequestMap.get(classId);
-    float sum_weights = 0.0F;
-    for (float weight : this.allRequestMap.values()) {
-      sum_weights += weight;
-    }
-    _weight = (_weight/sum_weights) * 1000.0F;
-    return _weight;
+    return weight;
   }
-
-//  synchronized DWRRDFSClient getDFSClient() { return this.dfs; }
 
   // Return the number of peers.
   synchronized int getNumPeers() {

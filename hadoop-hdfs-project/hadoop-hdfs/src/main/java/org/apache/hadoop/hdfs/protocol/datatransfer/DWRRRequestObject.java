@@ -3,9 +3,6 @@ package org.apache.hadoop.hdfs.protocol.datatransfer;
 
 import org.apache.hadoop.hdfs.server.datanode.DWRRDataXceiver;
 
-/**
- * Created by DEIM on 31/07/14.
- */
 public class DWRRRequestObject {
   private static int IDGLOBAL = 0;
   private int id;

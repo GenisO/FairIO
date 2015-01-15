@@ -4,9 +4,6 @@ import org.apache.hadoop.hdfs.protocol.datatransfer.PacketHeader;
 
 import java.nio.ByteBuffer;
 
-/**
- * Created by DEIM on 8/09/14.
- */
 public class DWRRWriteRequest {
 
   private boolean syncBlock;

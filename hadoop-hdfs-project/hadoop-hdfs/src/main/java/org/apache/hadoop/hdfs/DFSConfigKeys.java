@@ -630,11 +630,14 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
   public static final String DFS_DATANODE_XCEIVER_STOP_TIMEOUT_MILLIS_KEY = "dfs.datanode.xceiver.stop.timeout.millis";
   public static final long   DFS_DATANODE_XCEIVER_STOP_TIMEOUT_MILLIS_DEFAULT = 60000;
 
-	// TODO TODO conf de fitxer
-	public static final String DFS_DATANODE_XCEIVER_DWRR_CGROUPS_MODE_KEY = "dfs.datanode.xceiver.dwrr.cgroups";
-	public static final boolean DFS_DATANODE_XCEIVER_DWRR_CGROUPS_DEFAULT = false;
-  public static final int DFS_DATANODE_FAIRIODISK_PORT = 50030;
 
+
+	// TODO TODO fairIO parameters on hdfs-site.xml
+	public static final String DFS_FAIR_IO_KEY = "dfs.fair.io";
+	public static final boolean DFS_FAIR_IO_DEFAULT = false;
+  public static final int DFS_DATANODE_FAIR_IO_DISK_PORT = 50030;
+
+  // Next parameters are unused
   public static final String DFS_DATANODE_XCEIVER_DWRR_MODE_KEY = "dfs.datanode.xceiver.dwrr";
   public static final boolean DFS_DATANODE_XCEIVER_DWRR_DEFAULT = false;
 
@@ -645,6 +648,9 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
 
   public static final String DFS_DATANODE_XCEIVER_DWRR_WEIGTHED_FAIR_SHARE = "dfs.datanode.xceiver.dwrr.weigthedFairShare";
   public static final boolean DFS_DATANODE_XCEIVER_DWRR_WEIGTHED_FAIR_SHARE_DEFAULT = false;
+  // TODO TODO end fairIO parameters on hdfs-site.xml
+
+
 
   // WebHDFS retry policy
   public static final String  DFS_HTTP_CLIENT_RETRY_POLICY_ENABLED_KEY = "dfs.http.client.retry.policy.enabled";

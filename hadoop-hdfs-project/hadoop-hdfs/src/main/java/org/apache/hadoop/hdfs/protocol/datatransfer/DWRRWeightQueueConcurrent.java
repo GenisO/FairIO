@@ -6,9 +6,6 @@ import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TransferQueue;
 
-/**
- * Created by DEIM on 26/09/14.
- */
 public class DWRRWeightQueueConcurrent<E extends DWRRRequestObject> implements TransferQueue<E> {
 
   private long insertionTime;

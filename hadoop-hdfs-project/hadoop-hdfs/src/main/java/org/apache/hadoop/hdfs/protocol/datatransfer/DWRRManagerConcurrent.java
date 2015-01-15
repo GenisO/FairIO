@@ -4,7 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.apache.hadoop.hdfs.DWRRDFSClient;
+import org.apache.hadoop.hdfs.FairIODFSClient;
 import org.apache.hadoop.hdfs.server.datanode.DataNode;
 import org.apache.hadoop.hdfs.server.datanode.DWRRDataXceiver;
 import org.apache.hadoop.hdfs.server.namenode.ByteUtils;
@@ -21,14 +21,11 @@ import java.util.concurrent.LinkedTransferQueue;
 
 import static org.apache.hadoop.util.Time.now;
 
-/**
- * Created by DEIM on 28/07/14.
- */
 public class DWRRManagerConcurrent {
   public static final Log LOG = LogFactory.getLog(DWRRManagerConcurrent.class);
   public static final String nameWeight = "weight";
   private DataNode datanode;
-  private DWRRDFSClient dfs;
+  private FairIODFSClient dfs;
   private Object lock = new Object();
   private Configuration conf;
   private int numQueues;
@@ -150,7 +147,7 @@ public class DWRRManagerConcurrent {
   private LinkedTransferQueue<DWRRWeightQueueConcurrent<DWRRRequestObject>> allRequestsQueue;
 
   // TODO TODO fer que totes les classes propies que siguin modificacio duna altra de hadoop siguin per herencia, aixi afavorim la reutilitzacio de codi
-  public DWRRManagerConcurrent(Configuration conf, DWRRDFSClient dfs, DataNode datanode) {
+  public DWRRManagerConcurrent(Configuration conf, FairIODFSClient dfs, DataNode datanode) {
     this.conf = conf;
     this.allRequestsQueue = new LinkedTransferQueue<DWRRWeightQueueConcurrent<DWRRRequestObject>>();
     this.allRequestMap = new ConcurrentHashMap<Long, DWRRWeightQueueConcurrent<DWRRRequestObject>>();

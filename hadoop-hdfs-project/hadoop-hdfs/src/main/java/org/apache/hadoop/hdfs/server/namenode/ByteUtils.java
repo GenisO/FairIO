@@ -4,7 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * Created by DEIM on 16/10/14.
+ * Auxiliary class to manage conversion between byte[] to float and opposite case
  */
 public class ByteUtils {
   public static final Log LOG = LogFactory.getLog(FSNamesystem.class);

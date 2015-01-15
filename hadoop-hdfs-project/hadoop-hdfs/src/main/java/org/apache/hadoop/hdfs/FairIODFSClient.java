@@ -50,32 +50,35 @@ import java.util.Map;
  * DistributedFileSystem, which uses DFSClient to handle
  * filesystem tasks.
  *
+ * Modification of DFSClient to provide access to xattr
+ * attribute for FaiIO model
+ *
  ********************************************************/
 @InterfaceAudience.Private
-public class DWRRDFSClient {
-  public static final Log LOG = LogFactory.getLog(DWRRDFSClient.class);
+public class FairIODFSClient {
+  public static final Log LOG = LogFactory.getLog(FairIODFSClient.class);
 
   final ClientProtocol namenode;
 
   /**
    * Same as this(NameNode.getAddress(conf), conf);
-   * @see #DWRRDFSClient(java.net.InetSocketAddress, org.apache.hadoop.conf.Configuration)
+   * @see #FairIODFSClient(java.net.InetSocketAddress, org.apache.hadoop.conf.Configuration)
    * @deprecated Deprecated at 0.21
    */
   @Deprecated
-  public DWRRDFSClient(Configuration conf) throws IOException {
+  public FairIODFSClient(Configuration conf) throws IOException {
     this(NameNode.getAddress(conf), conf);
   }
 
-  public DWRRDFSClient(InetSocketAddress address, Configuration conf) throws IOException {
+  public FairIODFSClient(InetSocketAddress address, Configuration conf) throws IOException {
     this(NameNode.getUri(address), conf);
   }
 
   /**
    * Same as this(nameNodeUri, conf, null);
-   * @see #DWRRDFSClient(java.net.URI, org.apache.hadoop.conf.Configuration)
+   * @see #FairIODFSClient(java.net.URI, org.apache.hadoop.conf.Configuration)
    */
-  public DWRRDFSClient(URI nameNodeUri, Configuration conf
+  public FairIODFSClient(URI nameNodeUri, Configuration conf
   ) throws IOException {
     this(nameNodeUri, null, conf);
   }
@@ -89,7 +92,7 @@ public class DWRRDFSClient {
    * must be null.
    */
   @VisibleForTesting
-  public DWRRDFSClient(URI nameNodeUri, ClientProtocol rpcNamenode,
+  public FairIODFSClient(URI nameNodeUri, ClientProtocol rpcNamenode,
                        Configuration conf)
     throws IOException {
 

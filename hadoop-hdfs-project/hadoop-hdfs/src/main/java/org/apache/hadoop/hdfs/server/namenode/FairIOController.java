@@ -164,7 +164,7 @@ public class FairIOController {
   private void sendMessage(String ip, String sentence) {
     LOG.info("CAMAMILLA FairIOController.sendWeights ip="+ip+" "+sentence);
     try {
-      Socket nameNodeSocket = new Socket(ip, DFSConfigKeys.DFS_DATANODE_FAIRIODISK_PORT);
+      Socket nameNodeSocket = new Socket(ip, DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT);
       DataOutputStream outToDN = new DataOutputStream(nameNodeSocket.getOutputStream());
       outToDN.writeBytes(sentence + '\n');
       nameNodeSocket.close();

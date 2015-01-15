@@ -8110,6 +8110,11 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
       getEditLog().logSetXAttrs(src, xAttrs, logRetryCache);
       resultingStat = getAuditFileInfo(src, false);
 
+      String num="";
+      for (int i=0; i<xAttr.getValue().length; i++) {
+        num+=xAttr.getValue()[i]+":";
+      }
+      LOG.info("CAMAMILLA xAttr ["+xAttr.getName()+":"+num+"] a long="+ByteUtils.bytesToLong(xAttr.getValue()));     // TODO TODO log
       // Intercept xAttr to check if is FairIOKey
       if (fairIOModel && xAttr.getName().equals(FairIOController.nameWeight)) {
         // Update FairIOController with new value
@@ -8147,8 +8152,8 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
   List<XAttr> getXAttrs(long classId, String datanodeId) {
     List<XAttr> listXAttrs = new LinkedList<XAttr>();
     if (fairIOModel) {
-      float weight = fairIOController.getClassWeight(classId, datanodeId);
-      byte[] value = ByteUtils.floatToByte(weight);
+      long weight = fairIOController.getClassWeight(classId, datanodeId);
+      byte[] value = ByteUtils.longToByte(weight);
 
       XAttr.Builder builder = new XAttr.Builder();
       builder.setNameSpace(XAttr.NameSpace.USER);

@@ -168,6 +168,7 @@ public class DataNode extends Configured
   static final int CURRENT_BLOCK_FORMAT_VERSION = 1;
 
   private Daemon fairIODiskController;
+  private boolean fairIOModel;
 
   /**
    * Use {@link NetUtils#createSocketAddr(String)} instead.
@@ -793,10 +794,13 @@ public class DataNode extends Configured
     blockPoolManager = new BlockPoolManager(this);
     blockPoolManager.refreshNamenodes(conf);
 
-    // Init and start FairIODataNodeDiskController
-    fairIODiskController = new Daemon(new ThreadGroup("FairIODiskController Thread"), new FairIODataNodeDiskController());
-    fairIODiskController.start();
+    this.fairIOModel = conf.getBoolean(DFSConfigKeys.DFS_FAIR_IO_KEY, DFSConfigKeys.DFS_FAIR_IO_DEFAULT);
 
+    if (fairIOModel) {
+      // Init and start FairIODataNodeDiskController
+      fairIODiskController = new Daemon(new ThreadGroup("FairIODiskController Thread"), new FairIODataNodeDiskController());
+      fairIODiskController.start();
+    }
     // Create the ReadaheadPool from the DataNode context so we can
     // exit without having to explicitly shutdown its thread pool.
     readaheadPool = ReadaheadPool.getInstance();

@@ -755,7 +755,7 @@ class BPServiceActor implements Runnable {
     while (shouldRun()) {
       try {
         // Use returned registration from namenode with updated fields
-        bpRegistration = bpNamenode.registerDatanode(bpRegistration);   // TODO TODO registre DN abans de proto
+        bpRegistration = bpNamenode.registerDatanode(bpRegistration);
         break;
       } catch(SocketTimeoutException e) {  // namenode is busy
         LOG.info("Problem connecting to server: " + nnAddr);

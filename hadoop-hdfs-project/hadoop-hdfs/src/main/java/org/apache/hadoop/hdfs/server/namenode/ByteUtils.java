@@ -16,4 +16,12 @@ public class ByteUtils {
   public static float bytesToFloat(byte[] b) {
     return new Float(new String(b));
   }
+
+  public static byte[] longToByte(Long l) {
+    return String.valueOf(l).getBytes();
+  }
+
+  public static long bytesToLong(byte[] b) {
+    return new Long(new String(b));
+  }
 }

@@ -30,7 +30,7 @@ public class FairIOController {
   private static final BigDecimal ONE_MINUS_MIN_SHARE = BigDecimal.ONE.subtract(MIN_SHARE, CONTEXT);
   private static final BigDecimal MIN_COEFF = MIN_SHARE.divide(ONE_MINUS_MIN_SHARE, CONTEXT);
   private static final BigDecimal TWO = new BigDecimal(2, CONTEXT);
-  public static final float DEFAULT_WEIGHT = 100;
+  public static final long DEFAULT_WEIGHT = 100;
   public static final String nameWeight = "weight";
 
   private Map<FairIOClassInfo, Set<FairIODatanodeInfo>> classToDatanodes;
@@ -66,7 +66,7 @@ public class FairIOController {
     setClassWeight(classId, FairIOController.DEFAULT_WEIGHT);
   }
 
-  public void setClassWeight(long classId, float weight) {
+  public void setClassWeight(long classId, long weight) {
     FairIOClassInfo classInfo = new FairIOClassInfo(classId, weight);
     Set<FairIODatanodeInfo> datanodes = this.classToDatanodes.get(classInfo);
     if (datanodes == null)
@@ -112,12 +112,12 @@ public class FairIOController {
     computeShares();
   }
 
-  public float getClassWeight(long classId) {
-    return classInfoMap.get(classId).getWeight().floatValue();
+  public long getClassWeight(long classId) {
+    return classInfoMap.get(classId).getWeight().longValue();
   }
 
 
-  public float getClassWeight(long classId, String dnuuid) {
+  public long getClassWeight(long classId, String dnuuid) {
     // TODO TODO controlar el cas que no existeixi, llavors preguntar per xattrs
     // aixo passa al apagar i tornar a encedre el sistema, ja que tot esta en memoria
     LOG.info("CAMAMILLA FairIOController.getClassWeight classId="+classId+" dnid="+dnuuid);        // TODO TODO log
@@ -125,7 +125,7 @@ public class FairIOController {
     FairIODatanodeInfo info = nodeIDtoInfo.get(dnid);
     FairIOClassInfo classInfo = new FairIOClassInfo(classId);
     BigDecimal value = info.getClassWeight(classInfo);
-    float ret = value.floatValue();
+    long ret = value.longValue();
     return ret;
   }
 
@@ -152,8 +152,8 @@ public class FairIOController {
       String message = "";
       for (FairIOClassInfo classInfo : weightByClass.keySet()) {
         String classID = String.valueOf(classInfo.getClassID());
-        //String weight = String.valueOf(classInfo.getWeight().floatValue());
-        String weight = String.valueOf(weightByClass.get(classInfo).floatValue());
+        //String weight = String.valueOf(classInfo.getWeight().longValue());
+        String weight = String.valueOf(weightByClass.get(classInfo).longValue());
 
         message+=classID + ":" + weight+";";
       }

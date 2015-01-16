@@ -34,7 +34,7 @@ public class DWRRManagerConcurrent {
   private boolean weigthedFairShare;
   private boolean enoughDeficitCounter;
   private int Ninit = 7;
-  private PriorityQueue<Float> currentActiveWeights;
+  private PriorityQueue<Long> currentActiveWeights;
   private Daemon threadedDWRR = new Daemon(new ThreadGroup("Fair Thread"),
     new Runnable() {
       public final Log LOG = LogFactory.getLog(Daemon.class);
@@ -96,7 +96,7 @@ public class DWRRManagerConcurrent {
                   datanode.getMetrics().setQueuedRequests("" + queue.getClassId(), queue.getQueuedRequests());
                   LOG.info("CAMAMILLA " + numQueues + " cua " + queue.getClassId() + " buida " + " amb peticions servides= " + queue.getProcessedRequests());        // TODO TODO log
                   String weights = "";
-                  for (float weight : currentActiveWeights) {
+                  for (long weight : currentActiveWeights) {
                     weights += " " + weight;
                   }
 
@@ -105,7 +105,7 @@ public class DWRRManagerConcurrent {
                   currentActiveWeights.remove(queue.getWeight());
 
                   weights = "";
-                  for (float weight : currentActiveWeights) {
+                  for (long weight : currentActiveWeights) {
                     weights += " " + weight;
                   }
 
@@ -130,7 +130,7 @@ public class DWRRManagerConcurrent {
                 LOG.info(now() + "CAMAMILLA " + queueAux.toString());          // TODO TODO log
               }
               String weights = "";
-              for (float weight : currentActiveWeights) {
+              for (long weight : currentActiveWeights) {
                 weights += " " + weight;
               }
               LOG.info("CAMAMILLA DWRRManagerConcurrent.Thread run pesos son {" + weights + "}");      // TODO TODO log
@@ -142,7 +142,7 @@ public class DWRRManagerConcurrent {
         }
       }
     });
-  private Comparator<Float> maxComparator = Collections.reverseOrder();
+  private Comparator<Long> maxComparator = Collections.reverseOrder();
   private ConcurrentHashMap<Long, DWRRWeightQueueConcurrent<DWRRRequestObject>> allRequestMap;
   private LinkedTransferQueue<DWRRWeightQueueConcurrent<DWRRRequestObject>> allRequestsQueue;
 
@@ -155,14 +155,14 @@ public class DWRRManagerConcurrent {
     this.weigthedFairShare = conf.getBoolean(DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_WEIGTHED_FAIR_SHARE, DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_WEIGTHED_FAIR_SHARE_DEFAULT);
     this.numQueues = 0;
     this.processedNumQueues = 0;
-    this.currentActiveWeights = new PriorityQueue<Float>(Ninit, maxComparator);
+    this.currentActiveWeights = new PriorityQueue<Long>(Ninit, maxComparator);
     this.dfs = dfs;
     this.datanode = datanode;
 
     this.threadedDWRR.start();
   }
 
-  private Float maxWeight() {
+  private Long maxWeight() {
     return currentActiveWeights.peek();
   }
 
@@ -183,7 +183,7 @@ public class DWRRManagerConcurrent {
         LOG.info("CAMAMILLA addop " + classId + " no al map");      // TODO TODO log
 
         Map<String, byte[]> xattr = null;
-        float weight;
+        long weight;
         try {
           xattr = dfs.getXAttrs(classId, datanode.getDatanodeId().getDatanodeUuid());
 
@@ -192,7 +192,7 @@ public class DWRRManagerConcurrent {
             weight = FairIOController.DEFAULT_WEIGHT;
           } else {
             LOG.info("CAMAMILLA DWRRDataXceiver.opReadBlock.list fer el get de user." + DWRRManagerConcurrent.nameWeight);      // TODO TODO log
-            weight = ByteUtils.bytesToFloat(xattr.get("user." + DWRRManagerConcurrent.nameWeight));
+            weight = ByteUtils.bytesToLong(xattr.get("user." + DWRRManagerConcurrent.nameWeight));
           }
         } catch (IOException e) {
           LOG.error("CAMAMILLA DWRRDataXceiver.opReadBlock.list ERROR al getXattr " + e.getMessage());      // TODO TODO log
@@ -213,7 +213,7 @@ public class DWRRManagerConcurrent {
         currentActiveWeights.add(currentRequestQueue.getWeight());
 
         String weights = "";
-        for (float weight : currentActiveWeights) {
+        for (long weight : currentActiveWeights) {
           weights += " " + weight;
         }
 

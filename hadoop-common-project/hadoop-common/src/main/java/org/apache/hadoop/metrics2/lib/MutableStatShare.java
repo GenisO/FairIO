@@ -58,7 +58,7 @@ public class MutableStatShare extends MutableMetric {
 
   private long numSamples = 0;
   private boolean extended = false;
-  private float weight;
+  private long weight;
   private int queuedRequests;
 
 
@@ -168,7 +168,7 @@ public class MutableStatShare extends MutableMetric {
     minMax.reset();
   }
 
-  public void setWeight(float weight) {
+  public void setWeight(long weight) {
     this.weight = weight;
   }
 

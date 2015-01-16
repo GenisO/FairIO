@@ -500,7 +500,10 @@ class DataXceiver extends Receiver implements Runnable {
       }
 
       // Get weight for metrics in FairIOModel
-      float weight = dataXceiverServer.getClassWeight(block.getClassId());
+      // Segurament la comunicacio amb el NN per el getClassWeight pot ser lenta,
+      // i nomes ens interessa saber quan hi ha una variacio de pes,
+      // per tant potser indicarli al metrics des dun altre punt del codi (al capturar la commanda de setxattr per exemple al FSNamsystem)
+      long weight = dataXceiverServer.getClassWeight(block.getClassId());
       datanode.metrics.incrBytesRead((int) read);
       datanode.metrics.incrBlocksRead();
       datanode.metrics.incrProcessedRequest("" + block.getClassId(), read, weight);    // TODO TODO metrics

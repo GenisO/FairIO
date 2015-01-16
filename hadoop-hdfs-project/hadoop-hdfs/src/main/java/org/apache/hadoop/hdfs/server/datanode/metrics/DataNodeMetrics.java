@@ -17,8 +17,6 @@
  */
 package org.apache.hadoop.hdfs.server.datanode.metrics;
 
-import static org.apache.hadoop.metrics2.impl.MsInfo.SessionId;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -31,7 +29,7 @@ import org.apache.hadoop.metrics2.annotation.Metrics;
 import org.apache.hadoop.metrics2.lib.*;
 import org.apache.hadoop.metrics2.source.JvmMetrics;
 
-import java.util.HashMap;
+import static org.apache.hadoop.metrics2.impl.MsInfo.SessionId;
 
 /**
  *
@@ -293,7 +291,7 @@ public class DataNodeMetrics {
     }
   }
 
-  public void incrProcessedRequest(String classId, long bytes, float weight) {
+  public void incrProcessedRequest(String classId, long bytes, long weight) {
     String desc = "classId_metrics";
     String name = "classId_"+classId+"_";
     if (registry.get(name) == null) {

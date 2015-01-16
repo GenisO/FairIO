@@ -336,7 +336,7 @@ public class FSDirectory implements Closeable {
           List<XAttr> xattrs = getXAttrs(arrayInodes[i].getFullPathName());
 
           for (XAttr xattr : xattrs) {
-            if (xattr.getName().equals(FairIOController.nameWeight)) {     // entra en aquest
+            if (xattr.getName().equals(FairIOController.xattrName)) {     // entra en aquest
               classId = arrayInodes[i].getId();
               break;
             }

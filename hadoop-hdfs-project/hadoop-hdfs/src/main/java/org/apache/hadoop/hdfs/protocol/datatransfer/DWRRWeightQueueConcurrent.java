@@ -12,13 +12,13 @@ public class DWRRWeightQueueConcurrent<E extends DWRRRequestObject> implements T
   private long processedBytes;
   private LinkedTransferQueue<E> requests;
   private float deficitCounter;
-  private float weight;
+  private long weight;
   private int processedRequests;
   private int totalRequests;
   private long classId;
   private boolean newRound;
 
-  public DWRRWeightQueueConcurrent(long classId, float weight, long time) {
+  public DWRRWeightQueueConcurrent(long classId, long weight, long time) {
     this.weight = weight;
     this.classId = classId;
     this.deficitCounter = 0;
@@ -34,7 +34,7 @@ public class DWRRWeightQueueConcurrent<E extends DWRRRequestObject> implements T
     return processedBytes;
   }
 
-  public float getWeight() {
+  public long getWeight() {
     return weight;
   }
 

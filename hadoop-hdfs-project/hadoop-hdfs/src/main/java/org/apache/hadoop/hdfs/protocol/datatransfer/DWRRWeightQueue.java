@@ -8,13 +8,13 @@ public class DWRRWeightQueue<E extends DWRRRequestObject> implements Queue<E> {
   private long processedBytes;
   private Queue<E> requests;
   private float deficitCounter;
-  private float weight;
+  private long weight;
   private int processedRequests;
   private int totalRequests;
   private long classId;
   private boolean newRound;
 
-  public DWRRWeightQueue(long classId, float weight, long time) {
+  public DWRRWeightQueue(long classId, long weight, long time) {
     this.weight = weight;
     this.classId = classId;
     this.deficitCounter = 0;
@@ -30,7 +30,7 @@ public class DWRRWeightQueue<E extends DWRRRequestObject> implements Queue<E> {
     return processedBytes;
   }
 
-  public float getWeight() {
+  public long getWeight() {
     return weight;
   }
 

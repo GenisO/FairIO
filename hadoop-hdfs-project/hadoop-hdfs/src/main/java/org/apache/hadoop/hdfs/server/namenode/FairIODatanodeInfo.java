@@ -23,7 +23,7 @@ public class FairIODatanodeInfo implements Comparable<FairIODatanodeInfo>{
     this(nodeID, DEFAULT_CAPACITY);
   }
 
-    public FairIODatanodeInfo(DatanodeID nodeID, float capacity) {
+	public FairIODatanodeInfo(DatanodeID nodeID, float capacity) {
 		this.nodeID = nodeID;
 		this.capacity = new BigDecimal(capacity);
 		this.weightByClass = new HashMap<FairIOClassInfo, BigDecimal>();

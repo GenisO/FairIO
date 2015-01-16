@@ -299,8 +299,8 @@ public class DataXceiverServer implements Runnable {
   }
 
   // Possible coll de botella. S'usa per a les metriques
-  synchronized float getClassWeight(long classId) {
-    float weight = 0;
+  synchronized long getClassWeight(long classId) {
+    long weight = 0;
     if (fairIOModel) {
       try {
         Map<String, byte[]> xattr = null;
@@ -310,7 +310,7 @@ public class DataXceiverServer implements Runnable {
           LOG.error("CAMAMILLA DataXceiverServer.getClassWeight no te atribut weight");      // TODO TODO log
           weight = FairIOController.DEFAULT_WEIGHT;
         } else {
-          weight = ByteUtils.bytesToFloat(xattr.get("user." + DWRRManager.nameWeight));
+          weight = ByteUtils.bytesToLong(xattr.get("user." + DWRRManager.nameWeight));
         }
       } catch (IOException e) {
         LOG.error("CAMAMILLA DataXceiverServer.getClassWeight al getXattr " + e.getMessage());      // TODO TODO log

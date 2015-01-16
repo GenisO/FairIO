@@ -1,15 +1,12 @@
 package org.apache.hadoop.hdfs.server.namenode;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.protocol.DatanodeID;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.net.Socket;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -30,13 +27,16 @@ public class FairIOController {
   private static final BigDecimal ONE_MINUS_MIN_SHARE = BigDecimal.ONE.subtract(MIN_SHARE, CONTEXT);
   private static final BigDecimal MIN_COEFF = MIN_SHARE.divide(ONE_MINUS_MIN_SHARE, CONTEXT);
   private static final BigDecimal TWO = new BigDecimal(2, CONTEXT);
+
   public static final long DEFAULT_WEIGHT = 100;
-  public static final String nameWeight = "weight";
+  public static final String xattrName = "weight";
+
+  private FairIOMarginalsComparator datanodeInfoComparator;
 
   private Map<FairIOClassInfo, Set<FairIODatanodeInfo>> classToDatanodes;
   private HashMap<Long, FairIOClassInfo> classInfoMap;
+
   private Map<DatanodeID, FairIODatanodeInfo> nodeIDtoInfo;
-  private FairIOMarginalsComparator datanodeInfoComparator;
   private HashMap<String, DatanodeID> nodeUuidtoNodeID;
 
   public FairIOController() {
@@ -48,24 +48,31 @@ public class FairIOController {
 
   }
 
-  // TODO TODO sha daconseguir tambe la capacitat del datanode
+  // TODO TODO sha daconseguir tambe la capacitat del datanode?
   public void registerDatanode(DatanodeID datanodeID) {
     if (!this.nodeUuidtoNodeID.containsKey(datanodeID.getDatanodeUuid())) {
       FairIODatanodeInfo datanode = new FairIODatanodeInfo(datanodeID);
       this.nodeUuidtoNodeID.put(datanodeID.getDatanodeUuid(), datanodeID);
       this.nodeIDtoInfo.put(datanodeID, datanode);
     }
-
   }
 
+  @VisibleForTesting
+  public boolean existsDatanode(DatanodeID datanodeID) {
+    return this.nodeUuidtoNodeID.containsKey(datanodeID.getDatanodeUuid());
+  }
+
+  // Not used
   public boolean existsClassInfo(long classId) {
     return this.classToDatanodes.containsKey(new FairIOClassInfo(classId));
   }
 
+  // Not used
   public void setClassWeight(long classId) {
     setClassWeight(classId, FairIOController.DEFAULT_WEIGHT);
   }
 
+  // setGlobalClassWeight
   public void setClassWeight(long classId, long weight) {
     FairIOClassInfo classInfo = new FairIOClassInfo(classId, weight);
     Set<FairIODatanodeInfo> datanodes = this.classToDatanodes.get(classInfo);
@@ -112,11 +119,12 @@ public class FairIOController {
     computeShares();
   }
 
+  // Not used. getGlobalClassWeight
   public long getClassWeight(long classId) {
     return classInfoMap.get(classId).getWeight().longValue();
   }
 
-
+  // getLocalClassWeight
   public long getClassWeight(long classId, String dnuuid) {
     // TODO TODO controlar el cas que no existeixi, llavors preguntar per xattrs
     // aixo passa al apagar i tornar a encedre el sistema, ja que tot esta en memoria
@@ -163,14 +171,14 @@ public class FairIOController {
 
   private void sendMessage(String ip, String sentence) {
     LOG.info("CAMAMILLA FairIOController.sendWeights ip="+ip+" "+sentence);
-    try {
-      Socket nameNodeSocket = new Socket(ip, DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT);
-      DataOutputStream outToDN = new DataOutputStream(nameNodeSocket.getOutputStream());
-      outToDN.writeBytes(sentence + '\n');
-      nameNodeSocket.close();
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
+//    try {
+//      Socket nameNodeSocket = new Socket(ip, DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT);
+//      DataOutputStream outToDN = new DataOutputStream(nameNodeSocket.getOutputStream());
+//      outToDN.writeBytes(sentence + '\n');
+//      nameNodeSocket.close();
+//    } catch (IOException e) {
+//      LOG.error(e.getMessage());
+//    }
   }
 
   @Deprecated
@@ -336,9 +344,13 @@ public class FairIOController {
   }
 
   public void shutdown() {
+    Set<String> reportedDataNodes = new LinkedHashSet<String>();
     for (DatanodeID dID : nodeIDtoInfo.keySet()) {
       String ip = dID.getIpAddr();
-      sendMessage(ip, FairIOController.EXIT_SIGNAL);
+      if (!reportedDataNodes.contains(ip)) {
+        sendMessage(ip, FairIOController.EXIT_SIGNAL);
+        reportedDataNodes.add(ip);
+      }
     }
   }
 }

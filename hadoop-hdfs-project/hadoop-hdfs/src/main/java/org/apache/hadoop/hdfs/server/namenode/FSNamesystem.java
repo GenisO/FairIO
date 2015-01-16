@@ -4375,10 +4375,10 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
   void registerDatanode(DatanodeRegistration nodeReg) throws IOException {
     writeLock();
     try {
-      // TODO TODO registre DataNode
       getBlockManager().getDatanodeManager().registerDatanode(nodeReg);
       checkSafeMode();
       if (fairIOModel) {
+        // TODO TODO registre DataNode
         fairIOController.registerDatanode(nodeReg);
       }
     } finally {
@@ -8116,11 +8116,11 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
       }
       LOG.info("CAMAMILLA xAttr ["+xAttr.getName()+":"+num+"] a long="+ByteUtils.bytesToLong(xAttr.getValue()));     // TODO TODO log
       // Intercept xAttr to check if is FairIOKey
-      if (fairIOModel && xAttr.getName().equals(FairIOController.nameWeight)) {
+      if (fairIOModel && xAttr.getName().equals(FairIOController.xattrName)) {
         // Update FairIOController with new value
         INode fileINode = dir.getNode(FSDirectory.normalizePath(src), true);
         byte[] value = xAttr.getValue();
-        fairIOController.setClassWeight(fileINode.getId(), ByteUtils.bytesToFloat(value));
+        fairIOController.setClassWeight(fileINode.getId(), ByteUtils.bytesToLong(value));
       }
     } finally {
       writeUnlock();
@@ -8157,7 +8157,7 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
 
       XAttr.Builder builder = new XAttr.Builder();
       builder.setNameSpace(XAttr.NameSpace.USER);
-      builder.setName(FairIOController.nameWeight);
+      builder.setName(FairIOController.xattrName);
       builder.setValue(value);
 
       listXAttrs.add(builder.build());

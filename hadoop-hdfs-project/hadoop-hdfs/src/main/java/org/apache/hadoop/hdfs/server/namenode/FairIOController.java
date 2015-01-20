@@ -3,10 +3,14 @@ package org.apache.hadoop.hdfs.server.namenode;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.protocol.DatanodeID;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.net.Socket;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -31,6 +35,8 @@ public class FairIOController {
   public static final long DEFAULT_WEIGHT = 100;
   public static final String xattrName = "weight";
 
+  private boolean isTest;
+
   private FairIOMarginalsComparator datanodeInfoComparator;
 
   private Map<FairIOClassInfo, Set<FairIODatanodeInfo>> classToDatanodes;
@@ -45,7 +51,7 @@ public class FairIOController {
     this.nodeUuidtoNodeID = new HashMap<String, DatanodeID>();
     this.datanodeInfoComparator = new FairIOMarginalsComparator();
     this.classInfoMap = new HashMap<Long, FairIOClassInfo>();
-
+    this.isTest = false;
   }
 
   // TODO TODO sha daconseguir tambe la capacitat del datanode?
@@ -55,6 +61,11 @@ public class FairIOController {
       this.nodeUuidtoNodeID.put(datanodeID.getDatanodeUuid(), datanodeID);
       this.nodeIDtoInfo.put(datanodeID, datanode);
     }
+  }
+
+  @VisibleForTesting
+  public void setTest(boolean isTest) {
+    this.isTest = isTest;
   }
 
   @VisibleForTesting
@@ -146,12 +157,12 @@ public class FairIOController {
         computeSharesByClass(classInfo);
       }
     }
-
+    LOG.info("CAMAMILLA FairIOController.computeShares finalized "+this+" END");       // TODO TODO log
     weightsReady();
   }
 
   private void weightsReady() {
-  // TODO TODO per sockets!!
+    LOG.info("CAMAMILLA FairIOController.weightsReady");       // TODO TODO log
     for (DatanodeID dID : nodeIDtoInfo.keySet()) {
       String ip = dID.getIpAddr();
       FairIODatanodeInfo datanode = nodeIDtoInfo.get(dID);
@@ -165,20 +176,26 @@ public class FairIOController {
 
         message+=classID + ":" + weight+";";
       }
-      if (!message.equals("")) sendMessage(ip, message);
+      if (!message.equals("")) {
+        sendMessage(ip, message);
+        LOG.info("CAMAMILLA FairIOController.weightsReady to send: " + message);       // TODO TODO log
+      }
     }
+
   }
 
   private void sendMessage(String ip, String sentence) {
-    LOG.info("CAMAMILLA FairIOController.sendWeights ip="+ip+" "+sentence);
-//    try {
-//      Socket nameNodeSocket = new Socket(ip, DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT);
-//      DataOutputStream outToDN = new DataOutputStream(nameNodeSocket.getOutputStream());
-//      outToDN.writeBytes(sentence + '\n');
-//      nameNodeSocket.close();
-//    } catch (IOException e) {
-//      LOG.error(e.getMessage());
-//    }
+    if (!isTest) {
+      try {
+        LOG.info("CAMAMILLA FairIOController.sendMessage "+sentence+"to "+ip);       // TODO TODO log
+        Socket nameNodeSocket = new Socket(ip, DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT);
+        DataOutputStream outToDN = new DataOutputStream(nameNodeSocket.getOutputStream());
+        outToDN.writeBytes(sentence + '\n');
+        nameNodeSocket.close();
+      } catch (IOException e) {
+        LOG.error(e.getMessage());
+      }
+    }
   }
 
   @Deprecated
@@ -348,6 +365,7 @@ public class FairIOController {
     for (DatanodeID dID : nodeIDtoInfo.keySet()) {
       String ip = dID.getIpAddr();
       if (!reportedDataNodes.contains(ip)) {
+        LOG.info("CAMAMILLA FairIOController.shutdown send to "+ip);     // TODO TODO log
         sendMessage(ip, FairIOController.EXIT_SIGNAL);
         reportedDataNodes.add(ip);
       }

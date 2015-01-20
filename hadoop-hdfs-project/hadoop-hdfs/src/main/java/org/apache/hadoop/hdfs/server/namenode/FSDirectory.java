@@ -331,6 +331,7 @@ public class FSDirectory implements Closeable {
       //////
       INode[] arrayInodes = inodesInPath.getINodes();
       long classId = -1;
+      long weight = FairIOController.DEFAULT_WEIGHT;
       for (int i=arrayInodes.length-1; i>=0; i--) {
         if (arrayInodes[i] != null) {
           List<XAttr> xattrs = getXAttrs(arrayInodes[i].getFullPathName());
@@ -338,6 +339,7 @@ public class FSDirectory implements Closeable {
           for (XAttr xattr : xattrs) {
             if (xattr.getName().equals(FairIOController.xattrName)) {     // entra en aquest
               classId = arrayInodes[i].getId();
+              weight = ByteUtils.bytesToLong(xattr.getValue());
               break;
             }
           }
@@ -349,7 +351,7 @@ public class FSDirectory implements Closeable {
         LOG.info("CAMAMILLA FSDirectory.addBlock set fileINode classId="+classId);          // TODO TODO log
       }
       //////
-
+      namesystem.addClassWeight(classId, weight);
       block.setClassId(classId);        // TODO TODO important setclassid
 
       // associate new last block for the file

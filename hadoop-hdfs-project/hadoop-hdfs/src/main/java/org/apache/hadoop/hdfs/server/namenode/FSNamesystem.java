@@ -592,6 +592,8 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
     this.fsImage = fsImage;
     this.fairIOModel = conf.getBoolean(DFSConfigKeys.DFS_FAIR_IO_KEY, DFSConfigKeys.DFS_FAIR_IO_DEFAULT);
 
+    LOG.info("CAMAMILLA FSNamesystem fairIOModel="+fairIOModel);      // TODO TODO log
+
     if (fairIOModel) {
       fairIOController = new FairIOController();
     } else fairIOController = null;
@@ -2695,6 +2697,10 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
 
     // Return located block
     return makeLocatedBlock(newBlock, targets, offset);
+  }
+
+  public void addClassWeight(long classId, long weight) {
+    fairIOController.setClassWeight(classId, weight);
   }
 
   static class FileState {

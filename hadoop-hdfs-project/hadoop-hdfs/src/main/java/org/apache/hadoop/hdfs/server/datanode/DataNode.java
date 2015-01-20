@@ -796,11 +796,13 @@ public class DataNode extends Configured
 
     this.fairIOModel = conf.getBoolean(DFSConfigKeys.DFS_FAIR_IO_KEY, DFSConfigKeys.DFS_FAIR_IO_DEFAULT);
 
+    LOG.info("CAMAMILLA DataNode fairIOModel="+fairIOModel);      // TODO TODO log
     if (fairIOModel) {
       // Init and start FairIODataNodeDiskController
       fairIODiskController = new Daemon(new ThreadGroup("FairIODiskController Thread"), new FairIODataNodeDiskController());
       fairIODiskController.start();
     }
+
     // Create the ReadaheadPool from the DataNode context so we can
     // exit without having to explicitly shutdown its thread pool.
     readaheadPool = ReadaheadPool.getInstance();

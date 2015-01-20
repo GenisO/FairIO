@@ -25,17 +25,20 @@ public class FairIODataNodeDiskController implements Runnable {
   private ServerSocket serverSocket;
 
   public FairIODataNodeDiskController() {
+    LOG.info("CAMAMILLA FairIODataNodeDiskController constructor");     // TODO TODO log
     cGroup = new ControlGroup.BlkIOControlGroup();
 
     try {
       serverSocket = new ServerSocket(DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT);
     } catch (IOException e) {
-      LOG.error(e.getMessage());
+      LOG.error("CAMAMILLA ERROR: "+e.getMessage());
     }
+
+    LOG.info("CAMAMILLA FairIODataNodeDiskController end constructor");     // TODO TODO log
   }
 
   private void setCgroupWeights(long classId, long weight) {
-    LOG.info("CAMAMILLA FairIODataNodeDiskController.setCgroupWeights "+classId+"=>"+weight);     // TODO TODO
+    LOG.info("CAMAMILLA FairIODataNodeDiskController.setCgroupWeights "+classId+"=>"+weight);     // TODO TODO log
     // Set new value to specific directory
     String path = cGroup.createSubDirectory(String.valueOf(classId));
     ControlGroup group = new ControlGroup.BlkIOControlGroup(path);
@@ -49,20 +52,23 @@ public class FairIODataNodeDiskController implements Runnable {
 
   @Override
   public void run() {
+    LOG.info("CAMAMILLA FairIODataNodeDiskController.run");     // TODO TODO log
     boolean shouldRun = true;
 
     while (shouldRun) {
       try {
+        LOG.info("CAMAMILLA FairIODataNodeDiskController Wait until new request on "+serverSocket.getInetAddress().getHostAddress());     // TODO TODO log
         // Wait until new request
         Socket connectionSocket = serverSocket.accept();
         BufferedReader inFromNN =
           new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 
-        // fullLine format or "classId:weight;classId:weight;classId:weight;" or FairIOController.EXIT_SIGNAL
+        // fullLine format => "classId:weight;classId:weight;classId:weight;" or FairIOController.EXIT_SIGNAL
         String fullLine = inFromNN.readLine();
-        LOG.info("CAMAMILLA FairIODataNodeDiskController received message="+fullLine);     // TODO TODO
+        LOG.info("CAMAMILLA FairIODataNodeDiskController received message="+fullLine);     // TODO TODO log
         if (fullLine.equals(FairIOController.EXIT_SIGNAL)) {
           shouldRun = false;
+          LOG.info("CAMAMILLA FairIODataNodeDiskController now will exit");     // TODO TODO log
         } else {
           for (String line : fullLine.split(";")){
             String stClassId = line.substring(0, line.indexOf(":"));
@@ -79,6 +85,6 @@ public class FairIODataNodeDiskController implements Runnable {
         LOG.error(e.getMessage());
       }
     }
-    LOG.info("CAMAMILLA FairIODataNodeDiskController exit");     // TODO TODO
+    LOG.info("CAMAMILLA FairIODataNodeDiskController exit");     // TODO TODO log
   }
 }

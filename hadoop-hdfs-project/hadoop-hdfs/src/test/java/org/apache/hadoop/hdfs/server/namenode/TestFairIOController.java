@@ -14,36 +14,57 @@ import org.junit.Test;
  * </pre>
  * @version 1.0
  */
-public class FairIOControllerJUnitTest {
+public class TestFairIOController {
 
    FairIOController controller;
-   String ipDN1 = "1";
-   String ipDN2 = "2";
-   String ipDN3 = "3";
+   String ipDN1;
+   String ipDN2;
+   String ipDN3;
 
-   long w1 = 100;
-   long w2 = 200;
-   long w3 = 300;
-   long w4 = 400;
-   long w5 = 500;
+   long w1;
+   long w2;
+   long w3;
+   long w4;
+   long w5;
 
-   long c1 = 16831;
-   long c2 = 16832;
-   long c3 = 16833;
-   long c4 = 16834;
-   long c5 = 16835;
+   long c1;
+   long c2;
+   long c3;
+   long c4;
+   long c5;
 
-   DatanodeID dn1 = new DatanodeID(ipDN1, "d1", "d1", 1234, 1235, 1236, 1237);
-   DatanodeID dn2 = new DatanodeID(ipDN2, "d2", "d2", 1234, 1235, 1236, 1237);
-   DatanodeID dn3 = new DatanodeID(ipDN3, "d3", "d3", 1234, 1235, 1236, 1237);
+   DatanodeID dn1;
+   DatanodeID dn2;
+   DatanodeID dn3;
 
    @Before
    public void before() throws Exception {
+      ipDN1 = "1";
+      ipDN2 = "2";
+      ipDN3 = "3";
+
+      w1 = 100;
+      w2 = 200;
+      w3 = 300;
+      w4 = 400;
+      w5 = 500;
+
+      c1 = 16831;
+      c2 = 16832;
+      c3 = 16833;
+      c4 = 16834;
+      c5 = 16835;
+
+      dn1 = new DatanodeID(ipDN1, "d1", "d1", 1234, 1235, 1236, 1237);
+      dn2 = new DatanodeID(ipDN2, "d2", "d2", 1234, 1235, 1236, 1237);
+      dn3 = new DatanodeID(ipDN3, "d3", "d3", 1234, 1235, 1236, 1237);
+
       controller = new FairIOController();
    }
 
    @After
    public void after() throws Exception {
+      System.out.println(controller);
    }
 
    /**
@@ -66,6 +87,7 @@ public class FairIOControllerJUnitTest {
    public void testExistsClassInfo() throws Exception {
       controller.setClassWeight(c1);
       assert controller.existsClassInfo(c1);
+      assert !controller.existsClassInfo(c2);
    }
 
    /**
@@ -75,7 +97,8 @@ public class FairIOControllerJUnitTest {
     */
    @Test
    public void testSetClassWeightClassId() throws Exception {
-      // TODO: Test goes here...
+      controller.setClassWeight(c2);
+      assert controller.existsClassInfo(c2);
    }
 
    /**

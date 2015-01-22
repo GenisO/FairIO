@@ -43,7 +43,7 @@ public class FairIODatanodeInfo implements Comparable<FairIODatanodeInfo>{
 	}
 	
 	public BigDecimal getClassWeight(FairIOClassInfo classInfo) {
-    LOG.info("CAMAMILLA FairIODatanodeInfo.getClassWeight nodeId="+nodeID.getDatanodeUuid()+" necessitem classid="+classInfo.getClassID());        // TODO TODO log
+    //LOG.info("CAMAMILLA FairIODatanodeInfo.getClassWeight nodeId="+nodeID.getDatanodeUuid()+" necessitem classid="+classInfo.getClassID());        // TODO TODO log
 		if (!this.weightByClass.containsKey(classInfo))
 					return BigDecimal.ZERO;		
 		return this.weightByClass.get(classInfo);

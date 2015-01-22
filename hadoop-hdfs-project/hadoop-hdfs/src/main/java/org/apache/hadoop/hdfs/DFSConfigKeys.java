@@ -635,7 +635,8 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
 	// TODO TODO fairIO parameters on hdfs-site.xml
 	public static final String DFS_FAIR_IO_KEY = "dfs.fair.io";
 	public static final boolean DFS_FAIR_IO_DEFAULT = false;
-  public static final int DFS_DATANODE_FAIR_IO_DISK_PORT = 50030;
+  public static final String DFS_DATANODE_FAIR_IO_DISK_PORT_KEY = "dfs.datanode.fair.io.disk.port";
+  public static final int DFS_DATANODE_FAIR_IO_DISK_PORT_DEFAULT = 50030;
 
   // Next parameters are unused
   public static final String DFS_DATANODE_XCEIVER_DWRR_MODE_KEY = "dfs.datanode.xceiver.dwrr";

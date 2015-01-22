@@ -799,7 +799,8 @@ public class DataNode extends Configured
     LOG.info("CAMAMILLA DataNode fairIOModel="+fairIOModel);      // TODO TODO log
     if (fairIOModel) {
       // Init and start FairIODataNodeDiskController
-      fairIODiskController = new Daemon(new ThreadGroup("FairIODiskController Thread"), new FairIODataNodeDiskController());
+      int port = conf.getInt(DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT_KEY, DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT_DEFAULT);
+      fairIODiskController = new Daemon(new ThreadGroup("FairIODiskController Thread"), new FairIODataNodeDiskController(port));
       fairIODiskController.start();
     }
 

@@ -595,7 +595,8 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
     LOG.info("CAMAMILLA FSNamesystem fairIOModel="+fairIOModel);      // TODO TODO log
 
     if (fairIOModel) {
-      fairIOController = new FairIOController();
+      int port = conf.getInt(DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT_KEY, DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT_DEFAULT);
+      fairIOController = new FairIOController(port);
     } else fairIOController = null;
 
     try {
@@ -2700,7 +2701,9 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
   }
 
   public void addClassWeight(long classId, long weight) {
-    fairIOController.setClassWeight(classId, weight);
+    if (fairIOModel) {
+      fairIOController.setClassWeight(classId, weight);
+    }
   }
 
   static class FileState {
@@ -8116,11 +8119,6 @@ public class FSNamesystem implements Namesystem, FSClusterStats,
       getEditLog().logSetXAttrs(src, xAttrs, logRetryCache);
       resultingStat = getAuditFileInfo(src, false);
 
-      String num="";
-      for (int i=0; i<xAttr.getValue().length; i++) {
-        num+=xAttr.getValue()[i]+":";
-      }
-      LOG.info("CAMAMILLA xAttr ["+xAttr.getName()+":"+num+"] a long="+ByteUtils.bytesToLong(xAttr.getValue()));     // TODO TODO log
       // Intercept xAttr to check if is FairIOKey
       if (fairIOModel && xAttr.getName().equals(FairIOController.xattrName)) {
         // Update FairIOController with new value

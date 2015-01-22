@@ -17,17 +17,17 @@
  */
 package org.apache.hadoop.hdfs.server.blockmanagement;
 
-import java.util.LinkedList;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.hdfs.protocol.Block;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
 import org.apache.hadoop.hdfs.server.common.HdfsServerConstants.BlockUCState;
 import org.apache.hadoop.util.LightWeightGSet;
 
+import java.util.LinkedList;
+
 /**
  * BlockInfo class maintains for a given block
- * the {@link INodeFile} it is part of and datanodes where the replicas of 
+ * the {@link org.apache.hadoop.hdfs.server.namenode.INodeFile} it is part of and datanodes where the replicas of
  * the block are stored.
  * BlockInfo class maintains for a given block
  * the {@link BlockCollection} it is part of and datanodes where the replicas of 

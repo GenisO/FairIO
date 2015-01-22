@@ -54,12 +54,6 @@ public class DataXceiverServer implements Runnable {
   private FairIODFSClient xattrManagement;
   private boolean closed = false;
 
-  //private final boolean concurrentDWRR;
-  //private DWRRManager dwrrmanager;
-  //private final boolean shedulerDWRR;
-  //private FairIODFSClient dfs;
-  //private Map<Long, Float> allRequestMap;
-
   /**
    * Maximal number of concurrent xceivers per node.
    * Enforcing the limit is required in order to avoid data-node
@@ -140,22 +134,6 @@ public class DataXceiverServer implements Runnable {
             DFSConfigKeys.DFS_DATANODE_BALANCE_BANDWIDTHPERSEC_DEFAULT),
         conf.getInt(DFSConfigKeys.DFS_DATANODE_BALANCE_MAX_NUM_CONCURRENT_MOVES_KEY,
             DFSConfigKeys.DFS_DATANODE_BALANCE_MAX_NUM_CONCURRENT_MOVES_DEFAULT));
-		//this.shedulerDWRR = conf.getBoolean(DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_MODE_KEY, DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_DEFAULT);
-    //this.concurrentDWRR = conf.getBoolean(DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_MODE_CONCURRENT_KEY, DFSConfigKeys.DFS_DATANODE_XCEIVER_DWRR_DEFAULT);
-
-    //LOG.info("CAMAMILLA DWRR?="+shedulerDWRR+" new concurrent version?="+concurrentDWRR);
-    //cache of the class weights
-
-//    try {
-//      this.dfs = new FairIODFSClient(NameNode.getAddress(conf), conf);
-//      if (concurrentDWRR) {
-//        this.dwrrmanager = new DWRRManager(conf, dfs, datanode);
-//      } else {
-//        this.dwrrmanager = new DWRRManager(conf, dfs, datanode);
-//      }
-//    } catch (IOException e) {
-//      LOG.error("CAMAMILLA DataXceiverServer error dfs "+e.getMessage());      // TODO TODO log
-//    }
 
     this.fairIOModel = conf.getBoolean(DFSConfigKeys.DFS_FAIR_IO_KEY, DFSConfigKeys.DFS_FAIR_IO_DEFAULT);
 
@@ -184,15 +162,6 @@ public class DataXceiverServer implements Runnable {
               + maxXceiverCount);
         }
 
-//        if (shedulerDWRR) {     // TODO TODO llançadora de DWRR
-//					new Daemon(datanode.threadGroup,
-//						DWRRDataXceiver.create(peer, datanode, this, dwrrmanager))
-//						.start();
-//				} else {
-//					new Daemon(datanode.threadGroup,
-//						DataXceiver.create(peer, datanode, this))
-//						.start();
-//				}
         new Daemon(datanode.threadGroup,
 						DataXceiver.create(peer, datanode, this))
 						.start();
@@ -307,13 +276,12 @@ public class DataXceiverServer implements Runnable {
         xattr = xattrManagement.getXAttrs(classId, datanode.getDatanodeId().getDatanodeUuid());
 
         if (xattr == null) {
-          LOG.error("CAMAMILLA DataXceiverServer.getClassWeight no te atribut weight");      // TODO TODO log
           weight = FairIOController.DEFAULT_WEIGHT;
         } else {
           weight = ByteUtils.bytesToLong(xattr.get("user." + DWRRManager.nameWeight));
         }
       } catch (IOException e) {
-        LOG.error("CAMAMILLA DataXceiverServer.getClassWeight al getXattr " + e.getMessage());      // TODO TODO log
+        LOG.error("CAMAMILLA ERROR DataXceiverServer.getClassWeight al getXattr " + e.getMessage());      // TODO TODO log
         weight = FairIOController.DEFAULT_WEIGHT;
       }
     }

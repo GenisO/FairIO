@@ -3,7 +3,6 @@ package org.apache.hadoop.hdfs.server.namenode;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.protocol.DatanodeID;
 
 import java.io.DataOutputStream;
@@ -45,13 +44,17 @@ public class FairIOController {
   private Map<DatanodeID, FairIODatanodeInfo> nodeIDtoInfo;
   private HashMap<String, DatanodeID> nodeUuidtoNodeID;
 
-  public FairIOController() {
+  private Map<String, Map<Long, Long>> weightsToDiff;
+  private final int port;
+
+  public FairIOController(int port) {
     this.classToDatanodes = new HashMap<FairIOClassInfo, Set<FairIODatanodeInfo>>();
     this.nodeIDtoInfo = new HashMap<DatanodeID, FairIODatanodeInfo>();
     this.nodeUuidtoNodeID = new HashMap<String, DatanodeID>();
     this.datanodeInfoComparator = new FairIOMarginalsComparator();
     this.classInfoMap = new HashMap<Long, FairIOClassInfo>();
     this.isTest = false;
+    this.port = port;
   }
 
   // TODO TODO sha daconseguir tambe la capacitat del datanode?
@@ -85,14 +88,17 @@ public class FairIOController {
 
   // setGlobalClassWeight
   public void setClassWeight(long classId, long weight) {
-    FairIOClassInfo classInfo = new FairIOClassInfo(classId, weight);
-    Set<FairIODatanodeInfo> datanodes = this.classToDatanodes.get(classInfo);
-    if (datanodes == null)
-      datanodes = new HashSet<FairIODatanodeInfo>();
-    this.classToDatanodes.put(classInfo, datanodes);
-    this.classInfoMap.put(classId, classInfo);
+    LOG.info("CAMAMILLA FairIOController.setClassWeight "+classId+"->"+weight+" current weight="+(classInfoMap.containsKey(classId) ? classInfoMap.get(classId).getWeight().longValue() : -1));       // TODO TODO log
+    if (!classInfoMap.containsKey(classId) || (classInfoMap.containsKey(classId) && classInfoMap.get(classId).getWeight().longValue() != weight)) {
+      FairIOClassInfo classInfo = new FairIOClassInfo(classId, weight);
+      Set<FairIODatanodeInfo> datanodes = this.classToDatanodes.get(classInfo);
+      if (datanodes == null)
+        datanodes = new HashSet<FairIODatanodeInfo>();
+      this.classToDatanodes.put(classInfo, datanodes);
 
-    computeShares();
+      this.classInfoMap.put(classId, classInfo);
+      computeShares();
+    }
   }
 
 
@@ -150,6 +156,7 @@ public class FairIOController {
 
   /* Compute the corresponding shares for all classids */
   public synchronized void computeShares() {
+    preprareDiff();
     HashMap<FairIOClassInfo, BigDecimal> previousUtilities = new HashMap<FairIOClassInfo, BigDecimal>();
 
     while (!isUtilityConverged(previousUtilities)) {
@@ -161,6 +168,24 @@ public class FairIOController {
     weightsReady();
   }
 
+  private void preprareDiff() {
+    LOG.info("CAMAMILLA FairIOController.preprareDiff");       // TODO TODO log
+    weightsToDiff = new HashMap<String, Map<Long, Long>>();
+    for (DatanodeID dID : nodeIDtoInfo.keySet()) {
+      String ip = dID.getIpAddr();
+      FairIODatanodeInfo datanode = nodeIDtoInfo.get(dID);
+      Map<FairIOClassInfo, BigDecimal> weightByClass = datanode.getWeightByClass();
+
+      Map<Long, Long> mapClassWeights = new HashMap<Long, Long>();
+      for (FairIOClassInfo classInfo : weightByClass.keySet()) {
+        long classID = classInfo.getClassID();
+        long weight = weightByClass.get(classInfo).longValue();
+        mapClassWeights.put(classID, weight);
+      }
+      weightsToDiff.put(ip, mapClassWeights);
+    }
+  }
+
   private void weightsReady() {
     LOG.info("CAMAMILLA FairIOController.weightsReady");       // TODO TODO log
     for (DatanodeID dID : nodeIDtoInfo.keySet()) {
@@ -168,13 +193,17 @@ public class FairIOController {
       FairIODatanodeInfo datanode = nodeIDtoInfo.get(dID);
       Map<FairIOClassInfo, BigDecimal> weightByClass = datanode.getWeightByClass();
 
+      Map<Long, Long> mapToDiff = weightsToDiff.get(ip);
       String message = "";
       for (FairIOClassInfo classInfo : weightByClass.keySet()) {
-        String classID = String.valueOf(classInfo.getClassID());
-        //String weight = String.valueOf(classInfo.getWeight().longValue());
-        String weight = String.valueOf(weightByClass.get(classInfo).longValue());
+        long classID = classInfo.getClassID();
+        long weight = weightByClass.get(classInfo).longValue();
 
-        message+=classID + ":" + weight+";";
+        if (mapToDiff != null && mapToDiff.get(classID) != null && mapToDiff.get(classID) != weight) {
+          message += classID + ":" + weight + ";";
+        } else if ((mapToDiff != null && mapToDiff.get(classID) == null) || mapToDiff == null){
+          message += classID + ":" + weight + ";";
+        }
       }
       if (!message.equals("")) {
         sendMessage(ip, message);
@@ -188,7 +217,7 @@ public class FairIOController {
     if (!isTest) {
       try {
         LOG.info("CAMAMILLA FairIOController.sendMessage "+sentence+"to "+ip);       // TODO TODO log
-        Socket nameNodeSocket = new Socket(ip, DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT);
+        Socket nameNodeSocket = new Socket(ip, port);
         DataOutputStream outToDN = new DataOutputStream(nameNodeSocket.getOutputStream());
         outToDN.writeBytes(sentence + '\n');
         nameNodeSocket.close();

@@ -59,12 +59,13 @@ public class TestFairIOController {
       dn2 = new DatanodeID(ipDN2, "d2", "d2", 1234, 1235, 1236, 1237);
       dn3 = new DatanodeID(ipDN3, "d3", "d3", 1234, 1235, 1236, 1237);
 
-      controller = new FairIOController();
+      controller = new FairIOController(0);
+      controller.setTest(true);
    }
 
    @After
    public void after() throws Exception {
-      System.out.println(controller);
+      //System.out.println(controller);
    }
 
    /**
@@ -108,7 +109,8 @@ public class TestFairIOController {
     */
    @Test
    public void testSetClassWeightForClassIdWeight() throws Exception {
-      // TODO: Test goes here...
+      controller.setClassWeight(c1, w1);
+      assert controller.existsClassInfo(c1);
    }
 
    /**
@@ -118,7 +120,11 @@ public class TestFairIOController {
     */
    @Test
    public void testAddDatanodeToClass() throws Exception {
-      // TODO: Test goes here...
+      controller.setClassWeight(c1, w1);
+      controller.registerDatanode(dn1);
+      controller.addDatanodeToClass(c1, dn1.getDatanodeUuid());
+
+      assert controller.getClassWeight(c1,dn1.getDatanodeUuid())!=0;
    }
 
    /**
@@ -128,7 +134,12 @@ public class TestFairIOController {
     */
    @Test
    public void testRemoveDatanodeFromClass() throws Exception {
-      // TODO: Test goes here...
+      controller.setClassWeight(c1, w1);
+      controller.registerDatanode(dn1);
+      controller.addDatanodeToClass(c1, dn1.getDatanodeUuid());
+      controller.removeDatanodeFromClass(c1, dn1.getDatanodeUuid());
+
+      assert controller.getClassWeight(c1,dn1.getDatanodeUuid())==0;
    }
 
    /**
@@ -138,7 +149,8 @@ public class TestFairIOController {
     */
    @Test
    public void testGetClassWeightClassId() throws Exception {
-      // TODO: Test goes here...
+      controller.setClassWeight(c1, w1);
+      assert controller.getClassWeight(c1) == w1;
    }
 
    /**
@@ -148,7 +160,13 @@ public class TestFairIOController {
     */
    @Test
    public void testGetClassWeightForClassIdDnuuid() throws Exception {
-      // TODO: Test goes here...
+      controller.setClassWeight(c1, w1);
+      controller.registerDatanode(dn1);
+      controller.addDatanodeToClass(c1, dn1.getDatanodeUuid());
+      System.out.println("CAMAMILLA\n" + controller);
+      long recieved = controller.getClassWeight(c1, dn1.getDatanodeUuid());
+      // double check for lost decimals
+      assert (recieved == w1 || w1-recieved<=1);
    }
 
    /**
@@ -167,8 +185,8 @@ public class TestFairIOController {
     *
     */
    @Test
+   @Deprecated
    public void testInitializeAllShares() throws Exception {
-      // TODO: Test goes here...
    }
 
    /**
@@ -177,18 +195,8 @@ public class TestFairIOController {
     *
     */
    @Test
+   @Deprecated
    public void testInitializeShares() throws Exception {
-      // TODO: Test goes here...
-   }
-
-   /**
-    *
-    * Method: toString()
-    *
-    */
-   @Test
-   public void testToString() throws Exception {
-      // TODO: Test goes here...
    }
 
    /**
@@ -209,13 +217,6 @@ public class TestFairIOController {
    @Test
    public void testWeightsReady() throws Exception {
       // TODO: Test goes here...
-		/*
-		 * try { Method method =
-		 * FairIOController.getClass().getMethod("weightsReady");
-		 * method.setAccessible(true); method.invoke(<Object>, <Parameters>); }
-		 * catch(NoSuchMethodException e) { } catch(IllegalAccessException e) {
-		 * } catch(InvocationTargetException e) { }
-		 */
    }
 
    /**
@@ -226,14 +227,6 @@ public class TestFairIOController {
    @Test
    public void testSendMessage() throws Exception {
       // TODO: Test goes here...
-		/*
-		 * try { Method method =
-		 * FairIOController.getClass().getMethod("sendMessage",
-		 * String.class, String.class); method.setAccessible(true);
-		 * method.invoke(<Object>, <Parameters>); } catch(NoSuchMethodException
-		 * e) { } catch(IllegalAccessException e) { }
-		 * catch(InvocationTargetException e) { }
-		 */
    }
 
    /**
@@ -244,14 +237,6 @@ public class TestFairIOController {
    @Test
    public void testGetUtility() throws Exception {
       // TODO: Test goes here...
-		/*
-		 * try { Method method =
-		 * FairIOController.getClass().getMethod("getUtility",
-		 * FairIOClassInfo.class); method.setAccessible(true);
-		 * method.invoke(<Object>, <Parameters>); } catch(NoSuchMethodException
-		 * e) { } catch(IllegalAccessException e) { }
-		 * catch(InvocationTargetException e) { }
-		 */
    }
 
    /**
@@ -262,13 +247,6 @@ public class TestFairIOController {
    @Test
    public void testGetUtilities() throws Exception {
       // TODO: Test goes here...
-		/*
-		 * try { Method method =
-		 * FairIOController.getClass().getMethod("getUtilities");
-		 * method.setAccessible(true); method.invoke(<Object>, <Parameters>); }
-		 * catch(NoSuchMethodException e) { } catch(IllegalAccessException e) {
-		 * } catch(InvocationTargetException e) { }
-		 */
    }
 
    /**
@@ -280,14 +258,6 @@ public class TestFairIOController {
    @Test
    public void testIsUtilityConverged() throws Exception {
       // TODO: Test goes here...
-		/*
-		 * try { Method method =
-		 * FairIOController.getClass().getMethod("isUtilityConverged",
-		 * Map<FairIOClassInfo,.class); method.setAccessible(true);
-		 * method.invoke(<Object>, <Parameters>); } catch(NoSuchMethodException
-		 * e) { } catch(IllegalAccessException e) { }
-		 * catch(InvocationTargetException e) { }
-		 */
    }
 
    /**
@@ -298,14 +268,6 @@ public class TestFairIOController {
    @Test
    public void testComputeSharesByClass() throws Exception {
       // TODO: Test goes here...
-		/*
-		 * try { Method method =
-		 * FairIOController.getClass().getMethod("computeSharesByClass",
-		 * FairIOClassInfo.class); method.setAccessible(true);
-		 * method.invoke(<Object>, <Parameters>); } catch(NoSuchMethodException
-		 * e) { } catch(IllegalAccessException e) { }
-		 * catch(InvocationTargetException e) { }
-		 */
    }
 
    /**
@@ -316,13 +278,6 @@ public class TestFairIOController {
    @Test
    public void testSqrt() throws Exception {
       // TODO: Test goes here...
-		/*
-		 * try { Method method =
-		 * FairIOController.getClass().getMethod("sqrt", BigDecimal.class);
-		 * method.setAccessible(true); method.invoke(<Object>, <Parameters>); }
-		 * catch(NoSuchMethodException e) { } catch(IllegalAccessException e) {
-		 * } catch(InvocationTargetException e) { }
-		 */
    }
 
 }

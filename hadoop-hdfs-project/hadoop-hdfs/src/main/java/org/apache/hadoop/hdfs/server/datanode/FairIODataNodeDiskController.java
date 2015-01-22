@@ -2,7 +2,6 @@ package org.apache.hadoop.hdfs.server.datanode;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.server.namenode.FairIOController;
 
 import java.io.BufferedReader;
@@ -24,12 +23,12 @@ public class FairIODataNodeDiskController implements Runnable {
 
   private ServerSocket serverSocket;
 
-  public FairIODataNodeDiskController() {
+  public FairIODataNodeDiskController(int port) {
     LOG.info("CAMAMILLA FairIODataNodeDiskController constructor");     // TODO TODO log
     cGroup = new ControlGroup.BlkIOControlGroup();
 
     try {
-      serverSocket = new ServerSocket(DFSConfigKeys.DFS_DATANODE_FAIR_IO_DISK_PORT);
+      serverSocket = new ServerSocket(port);
     } catch (IOException e) {
       LOG.error("CAMAMILLA ERROR: "+e.getMessage());
     }

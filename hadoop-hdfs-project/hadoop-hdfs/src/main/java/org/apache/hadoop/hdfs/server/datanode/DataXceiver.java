@@ -746,7 +746,9 @@ class DataXceiver extends Receiver implements Runnable {
         LOG.info("Received " + block + " src: " + remoteAddress + " dest: "
             + localAddress + " of size " + block.getNumBytes());
       }
-      datanode.metrics.incrProcessedRequest(""+block.getClassId(), len, 0);       // TODO TODO metrics
+      long weight = dataXceiverServer.getClassWeight(block.getClassId());
+      LOG.info("CAMAMILLA Writting to statistics: Class ID " + block.getClassId() + " associated bytes: " + len + " associated weight: " + weight);     // TODO TODO log
+      datanode.metrics.incrProcessedRequest(""+block.getClassId(), len, weight);       // TODO TODO metrics
     } catch (IOException ioe) {
       LOG.info("opWriteBlock " + block + " received exception " + ioe);
       throw ioe;

@@ -269,7 +269,7 @@ public class DataXceiverServer implements Runnable {
 
   // Possible coll de botella. S'usa per a les metriques
   synchronized long getClassWeight(long classId) {
-    long weight = 0;
+    long weight = -10;
     if (fairIOModel) {
       try {
         Map<String, byte[]> xattr = null;

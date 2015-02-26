@@ -38,20 +38,12 @@ import org.apache.hadoop.fs.swift.util.SwiftObjectPath;
 import org.apache.hadoop.fs.swift.util.SwiftUtils;
 import org.codehaus.jackson.map.type.CollectionType;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InterruptedIOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -231,9 +223,14 @@ public class SwiftNativeFileSystemStore {
       if (SwiftProtocolConstants.HEADER_LAST_MODIFIED.equals(headerName)) {
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(PATTERN);
         try {
-          lastModified = simpleDateFormat.parse(header.getValue()).getTime();
+          Date data = simpleDateFormat.parse(header.getValue());
+          LOG.info("CAMAMILLA SwiftNativeFileSystemStore.getObjectMetadata("+path+") despres de fer el parser="+data+" lastModified="+lastModified);      // TODO TODO log
+          lastModified = data.getTime();
+          LOG.info("CAMAMILLA SwiftNativeFileSystemStore.getObjectMetadata("+path+") despres de fer el gettime="+lastModified);      // TODO TODO log
         } catch (ParseException e) {
-          throw new SwiftException("Failed to parse " + header.toString(), e);
+          LOG.error("CAMAMILLA NOU Failed to parse PATTERN=" + PATTERN + " getvalue={" + header.getValue() + "} \nCAMAMILLA header={" + header.toString() + "}");      // TODO TODO log
+          //throw new SwiftException("Failed to parse " + header.toString(), e);
+          lastModified = 0;
         }
       }
     }
@@ -345,6 +342,7 @@ public class SwiftNativeFileSystemStore {
         }
       } else {
         //a different status code: rethrow immediately
+        LOG.error("CAMAMILLA EERROORR "+e.getMessage());      // TODO TODO log
         throw e;
       }
     }

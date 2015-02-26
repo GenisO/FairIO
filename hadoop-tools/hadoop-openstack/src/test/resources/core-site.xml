@@ -48,4 +48,38 @@
     <include xmlns="http://www.w3.org/2001/XInclude"
              href="auth-keys.xml"/>
 
+	<!-- Swift integration -->
+	<property>
+   <name>fs.swift.impl</name>
+   <value>org.apache.hadoop.fs.swift.snative.SwiftNativeFileSystem</value>
+	</property>
+	<property>
+   <name>fs.swift.service.camamilla.auth.url</name>
+   <value>http://10.30.238.232:35357/v2.0/tokens</value>
+	</property>
+	<property>
+   <name>fs.swift.service.camamilla.region</name>
+   <value>regionOne</value>
+	</property>
+	<property>
+   <name>fs.swift.service.camamilla.tenant</name>
+   <value>stacksync</value>
+	</property>
+	<property>
+   <name>fs.swift.service.camamilla.username</name>
+   <value>hadoop</value>
+	</property>
+	<property>
+   <name>fs.swift.service.camamilla.password</name>
+   <value>hadoop</value>
+	</property>
+	<property>
+   <name>fs.swift.service.camamilla.http.port</name>
+   <value>8080</value>
+	</property>
+	<property>
+   <name>fs.swift.service.camamilla.https.port</name>
+   <value>443</value>
+	</property>
+
 </configuration>

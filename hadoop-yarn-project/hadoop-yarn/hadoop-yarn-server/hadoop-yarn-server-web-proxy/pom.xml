@@ -126,6 +126,12 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- TODO TODO CAMAMILLA DEPENDENCY -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-openstack</artifactId>
+    </dependency>
+
   </dependencies>
 
   <build>

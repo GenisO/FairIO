@@ -8,9 +8,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- *
- */
 public class FairIODatanodeInfo implements Comparable<FairIODatanodeInfo>{
   public static final Log LOG = LogFactory.getLog(FairIODatanodeInfo.class);
 	private DatanodeID nodeID;

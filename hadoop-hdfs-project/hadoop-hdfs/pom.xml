@@ -38,6 +38,11 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
   </properties>
 
   <dependencies>
+    <!-- TODO TODO CAMAMILLA DEPENDENCY -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-openstack</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-annotations</artifactId>

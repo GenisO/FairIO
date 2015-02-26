@@ -37,7 +37,6 @@ public class FairIODataNodeDiskController implements Runnable {
   }
 
   private void setCgroupWeights(long classId, long weight) {
-    LOG.info("CAMAMILLA FairIODataNodeDiskController.setCgroupWeights "+classId+"=>"+weight);     // TODO TODO log
     // Set new value to specific directory
     String path = cGroup.createSubDirectory(String.valueOf(classId));
     ControlGroup group = new ControlGroup.BlkIOControlGroup(path);
@@ -45,8 +44,8 @@ public class FairIODataNodeDiskController implements Runnable {
     // Move process to corresponding CGroup
     long tid = (long) ControlGroup.LinuxHelper.gettid();
     group.addTaskToGroup(String.valueOf(tid));
-
     group.setLongParameter(ControlGroup.BlkIOControlGroup.IO_WEIGHT, weight);
+    LOG.info("CAMAMILLA FairIODataNodeDiskController.setCgroupWeights "+classId+"=>"+weight+" amb tid="+tid);     // TODO TODO log
   }
 
   @Override
